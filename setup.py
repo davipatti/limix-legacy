@@ -164,7 +164,8 @@ def ensemble_extension():
 
 
 def setup_package(reswig, compatible):
-    src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+    # Use __file__ to get the source path, which works with setuptools.build_meta
+    src_path = os.path.dirname(os.path.abspath(__file__))
     old_path = os.getcwd()
     os.chdir(src_path)
     sys.path.insert(0, src_path)
@@ -172,18 +173,14 @@ def setup_package(reswig, compatible):
     # if sys.platform == 'darwin':
     #     mac_workaround(compatible)
 
-    needs_pytest = {"pytest", "test", "ptr"}.intersection(sys.argv)
-    pytest_runner = ["pytest-runner>=2.9"] if needs_pytest else []
-
     install_requires = ["scikit-learn", "pandas", "scipy", "h5py", "numpy"]
-    setup_requires = ["cython", "numpy"] + pytest_runner
-    tests_require = ["pytest"]
 
     metadata = dict(
         name="limix-legacy",
         version="0.8.13",
         description="A flexible and fast mixed model toolbox.",
         long_description=long_description,
+        long_description_content_type="text/markdown",
         keywords="linear mixed models, GWAS, QTL, " + "Variance component modelling",
         maintainer="Limix Developers",
         author="Danilo Horta, Christoph Lippert, Paolo Casale, Oliver Stegle",
@@ -193,8 +190,7 @@ def setup_package(reswig, compatible):
         include_package_data=True,
         url="https://github.com/limix/limix-legacy",
         install_requires=install_requires,
-        setup_requires=setup_requires,
-        tests_require=tests_require,
+        python_requires=">=3.9,<3.12",
         zip_safe=False,
         license="Apache License 2.0",
         ext_modules=[core_extension(reswig)] + ensemble_extension(),
@@ -205,7 +201,10 @@ def setup_package(reswig, compatible):
             "Intended Audience :: Science/Research",
             "License :: OSI Approved :: Apache Software License",
             "Natural Language :: English",
-            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
+            "Programming Language :: Python :: 3.11",
             "Topic :: Scientific/Engineering :: Bio-Informatics",
         ],
     )

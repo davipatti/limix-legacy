@@ -124,10 +124,10 @@ def best_split_full_model(ndarray X,
     cdef MMatrixXi* mnoderange = new MMatrixXi(<mint_t* > noderange.data,noderange.dimensions[0],1)
 
     cdef NP.ndarray m_best=NP.zeros([1,1],dtype=NP.int64)
-    cdef NP.ndarray s_best=NP.zeros([1,1],dtype=NP.float)
-    cdef NP.ndarray left_mean=NP.zeros([1,1],dtype=NP.float)
-    cdef NP.ndarray right_mean=NP.zeros([1,1],dtype=NP.float)
-    cdef NP.ndarray ll_score=NP.zeros([1,1],dtype=NP.float)
+    cdef NP.ndarray s_best=NP.zeros([1,1],dtype=NP.float64)
+    cdef NP.ndarray left_mean=NP.zeros([1,1],dtype=NP.float64)
+    cdef NP.ndarray right_mean=NP.zeros([1,1],dtype=NP.float64)
+    cdef NP.ndarray ll_score=NP.zeros([1,1],dtype=NP.float64)
     m_best[0,0] = -1
     s_best[0,0] = 0.0
     left_mean[0,0] = 0.0
@@ -184,7 +184,7 @@ def predict_rec(ndarray tree_nodes,
     cdef double* dresponse = <double*> response.data
     cdef mint_t root = 0
     c_predict_rec(dresponse, root, mtree_nodes, mleft_children, mright_children, mbest_predictor, mmean, msplitting_value, mX, depth)
-    print 'passed c prediction function'
+    print('passed c prediction function')
     return response[0,0]
 
 def predict(ndarray response,
@@ -227,7 +227,7 @@ def test(ndarray Xr,ndarray yR,delta,ndarray S):
     cdef MatrixXd* cout = new MatrixXd()
     c_test(cout,mXr,myR);
     #copy results back to python structures
-    cdef NP.ndarray pout  = NP.zeros([cout.rows(),cout.cols()],dtype=NP.float,order="F")
+    cdef NP.ndarray pout  = NP.zeros([cout.rows(),cout.cols()],dtype=NP.float64,order="F")
     cdef MMatrixXd* mpout = new MMatrixXd(<double* > pout.data,cout.rows(),cout.cols())
     c_copy(mpout,cout)
     return pout

@@ -1,0 +1,60 @@
+[build-system]
+requires = [
+    "setuptools>=45",
+    "wheel",
+    "cython>=0.29,<3",
+    "numpy>=1.19",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "limix-legacy"
+version = "0.8.13"
+description = "A flexible and fast mixed model toolbox."
+readme = "README.md"
+license = {text = "Apache License 2.0"}
+authors = [
+    {name = "Danilo Horta"},
+    {name = "Christoph Lippert"},
+    {name = "Paolo Casale"},
+    {name = "Oliver Stegle", email = "stegle@ebi.ac.uk"},
+]
+maintainers = [
+    {name = "Limix Developers", email = "stegle@ebi.ac.uk"},
+]
+keywords = ["linear mixed models", "GWAS", "QTL", "Variance component modelling"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+requires-python = ">=3.9,<3.12"
+dependencies = [
+    "scikit-learn",
+    "pandas",
+    "scipy",
+    "h5py",
+    "numpy",
+]
+
+[project.urls]
+Homepage = "https://github.com/limix/limix-legacy"
+Repository = "https://github.com/limix/limix-legacy"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-runner",
+]
+
+[tool.setuptools]
+packages = ["limix_legacy"]
+include-package-data = true
+zip-safe = false
