@@ -65,7 +65,7 @@ def qvalues(pv, m = None, return_pi0 = False, lowmem = False, pi0 = None, fix_la
 
     pv = pv.ravel() # flattens the array in place, more efficient than flatten()
 
-    if m == None:
+    if m  is None:
         m = float(len(pv))
     else:
         # the user has supplied an m, let's use it
@@ -74,7 +74,7 @@ def qvalues(pv, m = None, return_pi0 = False, lowmem = False, pi0 = None, fix_la
     # if the number of hypotheses is small, just set pi0 to 1
     if len(pv) < 100:
         pi0 = 1.0
-    elif pi0 != None:
+    elif pi0  is not None:
         pi0 = pi0
     else:
         # evaluate pi0 for different lambdas
@@ -82,7 +82,7 @@ def qvalues(pv, m = None, return_pi0 = False, lowmem = False, pi0 = None, fix_la
         lam = np.arange(0, 0.90, 0.01)
         counts = np.array([(pv > i).sum() for i in np.arange(0, 0.9, 0.01)])
 
-        if fix_lambda != None:
+        if fix_lambda  is not None:
             interv_count = (pv > fix_lambda - 0.01).sum()
             uniform_sim = np.array([(pv > fix_lambda-0.01).sum()*(i+1) for i in np.arange(0, len(np.arange(0, 0.90, 0.01)))][::-1])
             counts += uniform_sim

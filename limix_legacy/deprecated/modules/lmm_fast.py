@@ -30,7 +30,7 @@ def nLLeval(ldelta,UY,UX,S,MLparams=False):
 
 def optdelta(UY,UX,S,ldeltanull=None,numintervals=100,ldeltamin=-10.0,ldeltamax=10.0):
     """find the optimal delta"""
-    if ldeltanull==None:
+    if ldeltanull is None:
         nllgrid=NP.ones(numintervals+1)*NP.inf;
         ldeltagrid=NP.arange(numintervals+1)/(numintervals*1.0)*(ldeltamax-ldeltamin)+ldeltamin;
         nllmin=NP.inf;
@@ -63,7 +63,7 @@ def estimateBeta(X,Y,K,C=None,addBiasTerm=False,numintervals0=100,ldeltamin0=-5.
     S,U=LA.eigh(K);
     UY=NP.dot(U.T,Y);
     UX=NP.dot(U.T,X);
-    if (C==None):
+    if (C is None):
         Ucovariate=NP.dot(U.T,NP.ones([n,1]));
     else:
         if (addBiasTerm):
@@ -97,7 +97,7 @@ def train_associations(X,Y,K,C=None,addBiasTerm=False,numintervalsAlt=0,ldeltami
     S,U=LA.eigh(K);
     UY=NP.dot(U.T,Y);
     UX=NP.dot(U.T,X);
-    if (C==None):
+    if (C is None):
         Ucovariate=NP.dot(U.T,NP.ones([n,1]));
     else:
         if (addBiasTerm):
@@ -155,7 +155,7 @@ def train_interact(X,Y,K,interactants=None,covariates=None,addBiasTerm=True,numi
     S,U=LA.eigh(K);
     UY=NP.dot(U.T,Y);
     UX=NP.dot(U.T,X);
-    if (covariates==None):
+    if (covariates is None):
         covariates = NP.ones([n,0])
     if (addBiasTerm):
         covariates=NP.concatenate((covariates,NP.ones([n,1])),axis=1)
@@ -225,7 +225,7 @@ def train_interactX(X,Y,K,interactants=None,covariates=None,addBiasTerm=True,num
     S,U=LA.eigh(K);
     UY=NP.dot(U.T,Y);
     UX=NP.dot(U.T,X);
-    if (covariates==None):
+    if (covariates is None):
         covariates = NP.ones([n,0])
     if (addBiasTerm):
         covariates=NP.concatenate((covariates,NP.ones([n,1])),axis=1)

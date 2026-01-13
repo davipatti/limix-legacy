@@ -42,7 +42,7 @@ class QTLData(object):
         """
         return an index for a range query on the genotypes
         """
-        if idx_start==None and idx_end==None and pos_start==None and pos_end==None and chrom==None:
+        if idx_start is None and idx_end is None and pos_start is None and pos_end is None and chrom is None:
             return  np.arange(0,self.num_snps)
         elif idx_start is not None or idx_end is not None:
             if idx_start is None:
@@ -75,7 +75,7 @@ class QTLData(object):
         """
         return an index for a range query on the genotypes
         """
-        if idx_start==None and idx_end==None and pos_start==None and pos_end==None:
+        if idx_start is None and idx_end is None and pos_start is None and pos_end is None:
             return self.geno_snp_idx
         else:
             res = self.range_query_geno_local(idx_start=idx_start, idx_end=idx_end, chrom=chrom, pos_start=pos_start, pos_end=pos_end,windowsize=windowsize)
@@ -193,7 +193,7 @@ class QTLData(object):
         Returns:
             QTLdata object holding the specified subset of the data
         """
-        if not (idx_start==None and idx_end==None and pos_start==None and pos_end==None and chrom==None):
+        if not (idx_start is None and idx_end is None and pos_start is None and pos_end is None and chrom is None):
             query_idx = self.range_query_geno_local(idx_start=idx_start, idx_end=idx_end, chrom=chrom, pos_start=pos_start, pos_end=pos_end, windowsize=windowsize)
             return self.subsample(rows=rows,cols_pheno=cols_pheno,cols_geno=query_idx,idx_start=None,idx_end=None,pos_start=None,pos_end=None,chrom=None)
         C = copy.copy(self)

@@ -257,13 +257,13 @@ def qtl_test_lmm_kronecker(snps,phenos,covs=None,Acovs=None,Asnps=None,K1r=None,
     N  = phenos.shape[0]
     P  = phenos.shape[1]
 
-    if K1r==None:
+    if K1r is None:
         K1r = np.dot(snps,snps.T)
     else:
         assert K1r.shape[0]==N, 'K1r: dimensions dismatch'
         assert K1r.shape[1]==N, 'K1r: dimensions dismatch'
 
-    if K2r==None:
+    if K2r is None:
         K2r = np.eye(N)
     else:
         assert K2r.shape[0]==N, 'K2r: dimensions dismatch'
@@ -282,7 +282,7 @@ def qtl_test_lmm_kronecker(snps,phenos,covs=None,Acovs=None,Asnps=None,K1r=None,
     pv = np.zeros((len(Asnps),snps.shape[1]))
 
     #1. run GP model to infer suitable covariance structure
-    if K1c==None or K2c==None:
+    if K1c is None or K2c is None:
         vc = _estimateKronCovariances(phenos=phenos, K1r=K1r, K2r=K2r, K1c=K1c, K2c=K2c, covs=covs, Acovs=Acovs, trait_covar_type=trait_covar_type, rank=rank)
         K1c = vc.getTraitCovar(0)
         K2c = vc.getTraitCovar(1)
@@ -368,13 +368,13 @@ def qtl_test_interaction_lmm_kronecker(snps,phenos,covs=None,Acovs=None,Asnps1=N
     N  = phenos.shape[0]
     P  = phenos.shape[1]
 
-    if K1r==None:
+    if K1r is None:
         K1r = np.dot(snps,snps.T)
     else:
         assert K1r.shape[0]==N, 'K1r: dimensions dismatch'
         assert K1r.shape[1]==N, 'K1r: dimensions dismatch'
 
-    if K2r==None:
+    if K2r is None:
         K2r = np.eye(N)
     else:
         assert K2r.shape[0]==N, 'K2r: dimensions dismatch'
@@ -400,7 +400,7 @@ def qtl_test_interaction_lmm_kronecker(snps,phenos,covs=None,Acovs=None,Asnps1=N
     lrtAlt = np.zeros((len(Asnps1),snps.shape[1]))
 
     #1. run GP model to infer suitable covariance structure
-    if K1c==None or K2c==None:
+    if K1c is None or K2c is None:
         vc = _estimateKronCovariances(phenos=phenos, K1r=K1r, K2r=K2r, K1c=K1c, K2c=K2c, covs=covs, Acovs=Acovs, trait_covar_type=trait_covar_type, rank=rank)
         K1c = vc.getTraitCovar(0)
         K2c = vc.getTraitCovar(1)
@@ -615,13 +615,13 @@ def forward_lmm_kronecker(snps,phenos,Asnps=None,Acond=None,K1r=None,K1c=None,K2
     N  = phenos.shape[0]
     P  = phenos.shape[1]
 
-    if K1r==None:
+    if K1r is None:
         K1r = np.dot(snps,snps.T)
     else:
         assert K1r.shape[0]==N, 'K1r: dimensions dismatch'
         assert K1r.shape[1]==N, 'K1r: dimensions dismatch'
 
-    if K2r==None:
+    if K2r is None:
         K2r = np.eye(N)
     else:
         assert K2r.shape[0]==N, 'K2r: dimensions dismatch'
@@ -642,7 +642,7 @@ def forward_lmm_kronecker(snps,phenos,Asnps=None,Acond=None,K1r=None,K1c=None,K2
     assert len(Acond)>0, "need at least one Snp design matrix"
 
     #1. run GP model to infer suitable covariance structure
-    if K1c==None or K2c==None:
+    if K1c is None or K2c is None:
         vc = _estimateKronCovariances(phenos=phenos, K1r=K1r, K2r=K2r, K1c=K1c, K2c=K2c, covs=covs, Acovs=Acovs, **kw_args)
         K1c = vc.getTraitCovar(0)
         K2c = vc.getTraitCovar(1)
@@ -848,13 +848,13 @@ def _updateKronCovs(covs,Acovs,N,P):
 #     N  = phenos.shape[0]
 #     P  = phenos.shape[1]
 #
-#     if K1r==None:
+#     if K1r is None:
 #         K1r = np.dot(snps,snps.T)
 #     else:
 #         assert K1r.shape[0]==N, 'K1r: dimensions dismatch'
 #         assert K1r.shape[1]==N, 'K1r: dimensions dismatch'
 #
-#     if K2r==None:
+#     if K2r is None:
 #         K2r = np.eye(N)
 #     else:
 #         assert K2r.shape[0]==N, 'K2r: dimensions dismatch'
@@ -880,7 +880,7 @@ def _updateKronCovs(covs,Acovs,N,P):
 #     lrtAlt = np.zeros((len(Asnps1),snps.shape[1]))
 #
 #     #1. run GP model to infer suitable covariance structure
-#     if K1c==None or K2c==None:
+#     if K1c is None or K2c is None:
 #         vc = _estimateKronCovariances(phenos=phenos, K1r=K1r, K2r=K2r, K1c=K1c, K2c=K2c, covs=covs, Acovs=Acovs, trait_covar_type=trait_covar_type, rank=rank)
 #         K1c = vc.getTraitCovar(0)
 #         K2c = vc.getTraitCovar(1)

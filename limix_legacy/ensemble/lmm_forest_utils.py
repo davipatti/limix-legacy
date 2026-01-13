@@ -3,7 +3,7 @@ from . import par_lmm_forest as parUtils
 import random
 
 def checkMaf(X, maf=None):
-    if maf==None:
+    if maf is None:
         maf = 1.0/X.shape[0]
     Xmaf = (X>0).sum(axis=0)
     Iok = (Xmaf>=(maf*X.shape[0]))
@@ -38,7 +38,7 @@ def estimateKernel(X, msample=None, maf=None, scale=True):
     Xpop = X.copy()
     Xpop = Xpop[:,checkMaf(X, maf)]
     #2. sampling of predictors
-    if msample != None:
+    if msample  is not None:
         msample = NP.random.permutation(X.shape[1])[:msample]
         Xpop = Xpop[:,msample]
     Xpop -= Xpop.mean(axis=0)
@@ -86,7 +86,7 @@ def crossValidate(y, X, K=None, folds=3, model=None, returnModel=False):
         testIndexes = indexes[cvRun]
         yTrain = y[~testIndexes]
         XTrain = X[~testIndexes]
-        if K == None:
+        if K  is None:
             model.fit(XTrain, yTrain)
             prediction = NP.reshape(model.predict(X[testIndexes]), (-1,1))
         else: # models having population structure

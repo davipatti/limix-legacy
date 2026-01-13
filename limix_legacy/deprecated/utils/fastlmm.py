@@ -116,7 +116,7 @@ def run_linreg(pheno_file,file_test=None,bfile_test = None,tfile_test = None, ou
     else:
         pass
 
-    if covariates != None:
+    if covariates  is not None:
         command += " -covar %s" % covariates
 
     out_log = os.path.join(out_dir,'results_linreg.log')
@@ -163,15 +163,15 @@ def run_fastlmm(pheno_file,file_test=None,bfile_test = None,tfile_test = None,bf
         command += ' -filesim %s' % file_sim
     else:
         pass
-    if covariates != None:
+    if covariates  is not None:
         command += " -covar %s" % covariates
 
     if N is not None:
         command+= " -extractSimTopK %s %d" %(selsnps_file,N)
 
-    if excl_dist != None:
+    if excl_dist  is not None:
         command += ' -excludebygeneticdistance %f' % (excl_dist)
-    elif excl_pos != None:
+    elif excl_pos  is not None:
         command += ' -excludebyposition %d' %  (excl_pos)
     out_log = os.path.join(out_dir,'results_LMM.log')
 

@@ -50,10 +50,10 @@ def plot_manhattan(posCum,pv,chromBounds=None,
 	if plt is None:
 		plt = pl.gca()
 
-	if thr==None:
+	if thr is None:
 		thr = 0.01/float(posCum.shape[0])
 
-	if lim==None:
+	if lim is None:
 		lim=-1.2*np.log10(np.minimum(pv.min(),thr))
 
 	if chromBounds is None:
@@ -79,7 +79,7 @@ def plot_manhattan(posCum,pv,chromBounds=None,
 		if posCum is not None:
 			posCum=posCum[i_small]
 
-	if qv==None:
+	if qv is None:
 		Isign = pv<thr
 	else:
 		Isign = qv<thr
