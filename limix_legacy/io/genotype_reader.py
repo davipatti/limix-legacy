@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import scipy as sp
+import numpy as np
 import limix_legacy.deprecated.io.data_util as du
 import pandas as pd
 
@@ -53,7 +54,7 @@ class genotype_reader_h5py():
         if 'geno_ID' in list(self.geno['col_header'].keys()):
             self.geno_ID   = self.geno['col_header']['geno_ID'][:]
         else:
-            self.geno_ID =  sp.arange(self.num_snps)
+            self.geno_ID =  np.arange(self.num_snps)
 
         #cache?
         if cache_genotype:
@@ -114,7 +115,7 @@ class genotype_reader_h5py():
             assert pos_start[0]==pos_end[0],   "getGenoIndex only supports selection on a single chromosome"
             I = self.position["chrom"]==pos_start[0]
             I = I & (self.postion["pos"]>=(pos_start[1]-windowsize)) & (self.position["pos"]<(pos_end[1]+windowsize))
-            I =  sp.nonzero(I)[0]
+            I =  np.nonzero(I)[0]
             idx_start = I.min()
             idx_end = I.max()
         elif (chrom is not None):
@@ -131,7 +132,7 @@ class genotype_reader_h5py():
         """calculate the empirical genotype covariance in a region"""
         if X is not None:
             if X.dtype!= sp.float64:
-                X= sp.array(X,dtype= sp.float64)
+                X= np.array(X,dtype= sp.float64)
             K=X.dot(X.T)
             Nsnp=X.shape[1]
         else:
@@ -152,7 +153,7 @@ class genotype_reader_h5py():
                 thisblock=min(blocksize,idx_end-nread)
                 X=self.getGenotypes(sample_idx=sample_idx,idx_start=nread,idx_end=(nread+thisblock),center=center,unit=unit,impute_missing=True,**kw_args)
                 if X.dtype!= sp.float64:
-                    X= sp.array(X,dtype= sp.float64)
+                    X= np.array(X,dtype= sp.float64)
                 if K is None:
                     K=X.dot(X.T)
                 else:
@@ -197,11 +198,11 @@ class genotype_reader_h5py():
                 return self.geno["genotype_id"][:]
         else:
             if (idx_start is not None) & (idx_end is not None):
-                return  sp.arange(idx_start,idx_start)
+                return  np.arange(idx_start,idx_start)
             elif snp_idx is not None:
-                return  sp.arange(self.geno_matrix.shape[1])[snp_idx]
+                return  np.arange(self.geno_matrix.shape[1])[snp_idx]
             else:
-                return  sp.arange(self.geno_matrix.shape[1])
+                return  np.arange(self.geno_matrix.shape[1])
 
     def getPos(self,idx_start=None,idx_end=None,pos_start=None,pos_end=None,chrom=None,pos_cum_start=None,pos_cum_end=None):
         """
@@ -267,7 +268,7 @@ class genotype_reader_tables():
         if 'geno_ID' in self.geno.col_header:
             self.geno_ID   = self.geno.col_header.geno_ID[:]
         else:
-            self.geno_ID =  sp.arange(self.num_snps)
+            self.geno_ID =  np.arange(self.num_snps)
         self.position = pd.DataFrame(data=position,index=self.geno_ID)
         #cache?
         if cache_genotype:
@@ -333,12 +334,12 @@ class genotype_reader_tables():
             assert pos_start[0] == pos_end[0], "chromosomes don't match between start and end position"
             I = self.position["chrom"]==pos_start[0]
             I = I & (self.position["pos"]>=(pos_start[1]-windowsize)) & (self.position["pos"]<(pos_end[1]+windowsize))
-            I =  sp.nonzero(I)[0]
+            I =  np.nonzero(I)[0]
             idx_start = I.min()
             idx_end = I.max()
         elif chrom is not None:
             I = self.position["chrom"]==chrom
-            I =  sp.nonzero(I)[0]
+            I =  np.nonzero(I)[0]
             if I.size==0:
                 return None
             idx_start = I.min()
@@ -352,7 +353,7 @@ class genotype_reader_tables():
         """calculate the empirical genotype covariance in a region"""
         if X is not None:
             if X.dtype!= sp.float64:
-                X= sp.array(X,dtype= sp.float64)
+                X= np.array(X,dtype= sp.float64)
             K=X.dot(X.T)
             Nsnp=X.shape[1]
         else:
@@ -373,7 +374,7 @@ class genotype_reader_tables():
                 thisblock=min(blocksize,idx_end-nread)
                 X=self.getGenotypes(sample_idx=sample_idx,idx_start=nread,idx_end=(nread+thisblock),center=center,unit=unit,impute_missing=True,**kw_args)
                 if X.dtype!= sp.float64:
-                    X= sp.array(X,dtype= sp.float64)
+                    X= np.array(X,dtype= sp.float64)
                 if K is None:
                     K=X.dot(X.T)
                 else:
@@ -416,11 +417,11 @@ class genotype_reader_tables():
                 return self.geno.genotype_id[:]
         else:
             if (idx_start is not None) & (idx_end is not None):
-                return  sp.arange(idx_start,idx_start)
+                return  np.arange(idx_start,idx_start)
             elif snp_idx is not None:
-                return  sp.arange(self.geno_matrix.shape[1])[snp_idx]
+                return  np.arange(self.geno_matrix.shape[1])[snp_idx]
             else:
-                return  sp.arange(self.geno_matrix.shape[1])
+                return  np.arange(self.geno_matrix.shape[1])
 
     def getPos(self,idx_start=None,idx_end=None,snp_idx=None,pos_start=None,pos_end=None,chrom=None,windowsize=0):
         """

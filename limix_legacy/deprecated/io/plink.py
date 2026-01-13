@@ -52,17 +52,17 @@ def readPED(basefilename, delimiter = ' ',missing = '0',standardize = True, phen
     '''
     pedfile = basefilename+".ped"
     mapfile = basefilename+".map"
-    map = SP.loadtxt(mapfile,dtype = 'str')
+    map = NP.loadtxt(mapfile,dtype = 'str')
     
     rs = map[:,1]
-    pos = SP.array(map[:,(0,2,3)],dtype = 'float')
+    pos = NP.array(map[:,(0,2,3)],dtype = 'float')
     map = None
     
-    ped = SP.loadtxt(pedfile,dtype = 'str')
+    ped = NP.loadtxt(pedfile,dtype = 'str')
     iid = ped[:,0:2]
     snpsstr = ped[:,6::]
     inan=snpsstr==missing
-    snps = SP.zeros((snpsstr.shape[0],snpsstr.shape[1]/2))
+    snps = NP.zeros((snpsstr.shape[0],snpsstr.shape[1]/2))
     if standardize:
         for i in range(snpsstr.shape[1]/2):
             snps[inan[:,2*i],i]=0
@@ -72,7 +72,7 @@ def readPED(basefilename, delimiter = ' ',missing = '0',standardize = True, phen
             snps[~inan[:,2*i],i]/=snps[~inan[:,2*i],i].std()
     else:
         for i in range(snpsstr.shape[1]/2):
-            snps[inan[:,2*i],i]=SP.nan
+            snps[inan[:,2*i],i]=NP.nan
             vals=snpsstr[~inan[:,2*i],2*i:2*(i+1)]
             snps[~inan[:,2*i],i]+=(vals==vals[0,0]).sum(1)
     if pheno is not None:
@@ -108,18 +108,18 @@ def readRAW(basefilename, delimiter = ' ',missing = '0',standardize = True, phen
     '''
     rawfile = basefilename+".raw"
     #mapfile = basefilename+".map"
-    #map = SP.loadtxt(mapfile,dtype = 'str')
+    #map = NP.loadtxt(mapfile,dtype = 'str')
     
     #rs = map[:,1]
-    #pos = SP.array(map[:,(0,2,3)],dtype = 'float')
+    #pos = NP.array(map[:,(0,2,3)],dtype = 'float')
     #map = None
     import pdb
     #pdb.set_trace()
-    raw = SP.loadtxt(rawfile,dtype = 'str')
+    raw = NP.loadtxt(rawfile,dtype = 'str')
     iid = raw[:,0:2]
     snpsstr = raw[:,6::]
     inan=snpsstr==missing
-    snps = SP.zeros((snpsstr.shape[0],snpsstr.shape[1]/2))
+    snps = NP.zeros((snpsstr.shape[0],snpsstr.shape[1]/2))
     if standardize:
         for i in range(snpsstr.shape[1]/2):
             raw[inan[:,2*i],i]=0
@@ -129,7 +129,7 @@ def readRAW(basefilename, delimiter = ' ',missing = '0',standardize = True, phen
             snps[~inan[:,2*i],i]/=snps[~inan[:,2*i],i].std()
     else:
         for i in range(snpsstr.shape[1]/2):
-            snps[inan[:,2*i],i]=SP.nan
+            snps[inan[:,2*i],i]=NP.nan
             vals=snpsstr[~inan[:,2*i],2*i:2*(i+1)]
             snps[~inan[:,2*i],i]+=(vals==vals[0,0]).sum(1)
     if pheno is not None:
@@ -157,7 +157,7 @@ def loadPhen(filename, missing ='-9', pheno = None):
     'iid'    : [N*2] array of family IDs and individual IDs
     --------------------------------------------------------------------------    
     '''
-    data = SP.loadtxt(filename,dtype = 'str')
+    data = NP.loadtxt(filename,dtype = 'str')
     if data[0,0] == 'FID':
         header = data[0,2::]
         data = data[1::]
@@ -167,11 +167,11 @@ def loadPhen(filename, missing ='-9', pheno = None):
     data = data[:,2::]
     sel = data != missing
     sel = sel.reshape(-1)
-    sel = SP.nonzero(sel)
+    sel = NP.nonzero(sel)
     data = data[sel]
     iid = iid[sel,:]
     iid = iid.reshape(iid.shape[1], iid.shape[2])
-    vals = SP.array(data,dtype = 'float')
+    vals = NP.array(data,dtype = 'float')
     if pheno is not None:
         #TODO: sort and filter SNPs according to pheno.
         pass
@@ -202,7 +202,7 @@ def standardize(snps):
 
 
 
-def readBED(basefilename, blocksize = 1, start = 0, nSNPs = SP.inf, startpos = None, endpos = None, order  = 'F',standardizeSNPs=False,ipos = 2):
+def readBED(basefilename, blocksize = 1, start = 0, nSNPs = NP.inf, startpos = None, endpos = None, order  = 'F',standardizeSNPs=False,ipos = 2):
     '''
     read [basefilename].bed,[basefilename].bim,[basefilename].fam
     --------------------------------------------------------------------------
@@ -212,7 +212,7 @@ def readBED(basefilename, blocksize = 1, start = 0, nSNPs = SP.inf, startpos = N
     blocksize       : load blocksize SNPs at a time (default 1)
     start           : index of the first SNP to be loaded from the .bed-file
                       (default 0)
-    nSNPs           : load nSNPs from the .bed file (default SP.inf, meaning all)
+    nSNPs           : load nSNPs from the .bed file (default NP.inf, meaning all)
     startpos        : starting position of the loaded genomic region[chr,bpdist]
     endpos          : end-position of the loaded genomic region     [chr,bpdist]
     order           : memory layout of the returned SNP array (default 'F')
@@ -234,13 +234,13 @@ def readBED(basefilename, blocksize = 1, start = 0, nSNPs = SP.inf, startpos = N
     '''
     fam = basefilename+ '.fam'
     delimiter = deduce_delimiter(fam)
-    fam = SP.loadtxt(fam,delimiter = delimiter,dtype = 'str',usecols=(0,1))
+    fam = NP.loadtxt(fam,delimiter = delimiter,dtype = 'str',usecols=(0,1))
     bim = basefilename+'.bim'
     delimiter = deduce_delimiter(bim)
-    bim = SP.loadtxt(bim,delimiter = delimiter,dtype = 'str',usecols = (0,1,2,3,4,5))
+    bim = NP.loadtxt(bim,delimiter = delimiter,dtype = 'str',usecols = (0,1,2,3,4,5))
     rs = bim[:,1]
-    pos = SP.array(bim[:,(0,2,3)],dtype = 'float')
-    alleles = SP.array(bim[:,(4,5)],dtype='str')
+    pos = NP.array(bim[:,(0,2,3)],dtype = 'float')
+    alleles = NP.array(bim[:,(4,5)],dtype='str')
     #pdb.set_trace()
     if startpos is not None:
         #pdb.set_trace()
@@ -257,10 +257,10 @@ def readBED(basefilename, blocksize = 1, start = 0, nSNPs = SP.inf, startpos = N
         nSNPs = end - start
         if (nSNPs<=0) or (end==0) or (start<=0):
             ret = {
-                'pos':SP.zeros((0,3)),
-                'rs':SP.zeros((0)),
+                'pos':NP.zeros((0,3)),
+                'rs':NP.zeros((0)),
                 'iid':fam,
-                'snps':SP.zeros((fam.shape[0],0))
+                'snps':NP.zeros((fam.shape[0],0))
                 }
             return ret
         pass
@@ -278,11 +278,11 @@ def readBED(basefilename, blocksize = 1, start = 0, nSNPs = SP.inf, startpos = N
             'rs'     :rs[start:start],
             'pos'    :pos[start:start,:],
             #'snps'   :SNPs[0:N,start:start],
-            'snps'   :SP.zeros((N,0)),
+            'snps'   :NP.zeros((N,0)),
             'iid'    :fam
             }
         return ret
-    SNPs = SP.zeros(((SP.ceil(0.25*N)*4),nSNPs),order=order)
+    SNPs = NP.zeros(((NP.ceil(0.25*N)*4),nSNPs),order=order)
     bed = basefilename + '.bed'
     with open(bed, "rb") as f:
         mode = f.read(2)
@@ -291,49 +291,49 @@ def readBED(basefilename, blocksize = 1, start = 0, nSNPs = SP.inf, startpos = N
         mode = f.read(1) #\x01 = SNP major \x00 = individual major
         if mode != '\x01':
             raise Exception('only SNP-major is implemented')
-        startbit = SP.ceil(0.25*N)*start+3
+        startbit = NP.ceil(0.25*N)*start+3
         f.seek(startbit)
-        for blockStart in SP.arange(0,nSNPs,blocksize):
+        for blockStart in NP.arange(0,nSNPs,blocksize):
             blockEnd = min(S,blockStart+blocksize)
             Sblock = min(nSNPs-blockStart,blocksize)
-            nbyte = int(SP.ceil(0.25*N)*Sblock)
-            bytes = SP.array(bytearray(f.read(nbyte))).reshape((SP.ceil(0.25*N),Sblock),order='F')
+            nbyte = int(NP.ceil(0.25*N)*Sblock)
+            bytes = NP.array(bytearray(f.read(nbyte))).reshape((NP.ceil(0.25*N),Sblock),order='F')
             
-            SNPs[3::4,blockStart:blockEnd][bytes>=64]=SP.nan
+            SNPs[3::4,blockStart:blockEnd][bytes>=64]=NP.nan
             SNPs[3::4,blockStart:blockEnd][bytes>=128]=1
             SNPs[3::4,blockStart:blockEnd][bytes>=192]=2
-            bytes=SP.mod(bytes,64)
-            SNPs[2::4,blockStart:blockEnd][bytes>=16]=SP.nan
+            bytes=NP.mod(bytes,64)
+            SNPs[2::4,blockStart:blockEnd][bytes>=16]=NP.nan
             SNPs[2::4,blockStart:blockEnd][bytes>=32]=1
             SNPs[2::4,blockStart:blockEnd][bytes>=48]=2
-            bytes=SP.mod(bytes,16)
-            SNPs[1::4,blockStart:blockEnd][bytes>=4]=SP.nan
+            bytes=NP.mod(bytes,16)
+            SNPs[1::4,blockStart:blockEnd][bytes>=4]=NP.nan
             SNPs[1::4,blockStart:blockEnd][bytes>=8]=1
             SNPs[1::4,blockStart:blockEnd][bytes>=12]=2
-            bytes=SP.mod(bytes,4)
-            SNPs[0::4,blockStart:blockEnd][bytes>=1]=SP.nan
+            bytes=NP.mod(bytes,4)
+            SNPs[0::4,blockStart:blockEnd][bytes>=1]=NP.nan
             SNPs[0::4,blockStart:blockEnd][bytes>=2]=1
             SNPs[0::4,blockStart:blockEnd][bytes>=3]=2
     
     if 0: #the binary format as described in the documentation (seems wrong)
-        SNPs[3::4][bytes>=128]=SP.nan
+        SNPs[3::4][bytes>=128]=NP.nan
         SNPs[3::4][bytes>=192]=1
-        bytes=SP.mod(bytes,128)
+        bytes=NP.mod(bytes,128)
         SNPs[3::4][bytes>=64]+=1
-        bytes=SP.mod(bytes,64)
-        SNPs[2::4][bytes>=32]=SP.nan
+        bytes=NP.mod(bytes,64)
+        SNPs[2::4][bytes>=32]=NP.nan
         SNPs[2::4][bytes>=48]=1
-        bytes=SP.mod(bytes,32)
+        bytes=NP.mod(bytes,32)
         SNPs[2::4][bytes>=16]+=1
-        bytes=SP.mod(bytes,16)
-        SNPs[1::4][bytes>=8]=SP.nan
+        bytes=NP.mod(bytes,16)
+        SNPs[1::4][bytes>=8]=NP.nan
         SNPs[1::4][bytes>=12]=1
-        bytes=SP.mod(bytes,8)
+        bytes=NP.mod(bytes,8)
         SNPs[1::4][bytes>=4]+=1
-        bytes=SP.mod(bytes,4)
-        SNPs[0::4][bytes>=2]=SP.nan
+        bytes=NP.mod(bytes,4)
+        SNPs[0::4][bytes>=2]=NP.nan
         SNPs[0::4][bytes>=3]=1
-        bytes=SP.mod(bytes,2)
+        bytes=NP.mod(bytes,2)
         SNPs[0::4][bytes>=1]+=1
     snps = SNPs[0:N,:]
     if standardizeSNPs:
@@ -352,7 +352,7 @@ def readBED(basefilename, blocksize = 1, start = 0, nSNPs = SP.inf, startpos = N
 
 def findIndex(ids, bedids): 
     N1 = ids.shape[0]
-    com1 = SP.chararray(N1, itemsize=30)
+    com1 = NP.chararray(N1, itemsize=30)
     #com1 = {}
     N2 = bedids.shape[0]
     com2 = {}
@@ -362,7 +362,7 @@ def findIndex(ids, bedids):
     for i in range(N2):
         com2[ bedids[i,0] + "_" + bedids[i,1] ] = i
     if (N1 <= N2):
-        index = SP.zeros(N1)
+        index = NP.zeros(N1)
         count = 0
         for i in range(N1):
             try:
@@ -372,7 +372,7 @@ def findIndex(ids, bedids):
             index[count] = ind
             count = count + 1
     else:
-        index = SP.zeros(N2)
+        index = NP.zeros(N2)
         count = 0
         for i in range(N2):
             try:

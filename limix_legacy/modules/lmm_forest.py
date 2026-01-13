@@ -4,7 +4,7 @@ Created on Apr 2, 2013
 @author: johannes
 '''
 
-import scipy as SP
+import numpy as NP
 import scipy.linalg as LA
 import warnings
 from . import pySplittingCore as SC
@@ -134,7 +134,7 @@ class Forest(object):
         self.trees = []
 
         if random_state is not None:
-            SP.random.seed(random_state)
+            NP.random.seed(random_state)
         if tc is not None:
             parMixedForest.par_init(**self.init_parameters)
 
@@ -169,7 +169,7 @@ class Forest(object):
         if self.kernel == 'data':
             self.kernel = SC.estimateKernel(X, maf=1.0/X.shape[0])
         elif self.kernel == 'iid':
-            self.kernel = SP.identity(X.shape[0])
+            self.kernel = NP.identity(X.shape[0])
         # Use dedicated part of data as background model
         elif self.kernel.size == X.shape[1]:
             tmp_ind = self.kernel
@@ -190,13 +190,13 @@ class Forest(object):
                 print('done fitting BLUP')
             # Update delta if it used to be 'None'
             self.delta = self.BLUP.delta
-        self.max_features = SP.maximum(SP.int_(self.ratio_features*self.m), 1)
-        self.var_used = SP.zeros(self.m)
-        self.log_importance = SP.zeros(self.m)
+        self.max_features = NP.maximum(NP.int_(self.ratio_features*self.m), 1)
+        self.var_used = NP.zeros(self.m)
+        self.log_importance = NP.zeros(self.m)
         self.depth = 0
 
         if self.verbose > 0:
-            print(('log(delta) fitted to ', SP.log(self.delta)))
+            print(('log(delta) fitted to ', NP.log(self.delta)))
 
         # Initialize individual trees
         if recycle and self.trees != []:
@@ -256,15 +256,15 @@ class Forest(object):
 
     def tree_sample(self):
         if self.subsampling:
-            n_sample = SP.int_(self.n*self.sampsize)
-            subsample = SP.random.permutation(self.n)[:n_sample]
+            n_sample = NP.int_(self.n*self.sampsize)
+            subsample = NP.random.permutation(self.n)[:n_sample]
         else:
-            subsample = SP.random.random_integers(0, self.n-1, self.n)
+            subsample = NP.random.random_integers(0, self.n-1, self.n)
         return subsample
 
     def further(self, depth=float('inf')):
         if self.tc is None:
-            for i in SP.arange(len(self.trees)):
+            for i in NP.arange(len(self.trees)):
                 if self.verbose > 1:
                     print(('growing tree ', i))
                 self.trees[i].grow(depth)
@@ -279,8 +279,8 @@ class Forest(object):
             n_res = self.n
         else:
             n_res = X.shape[0]
-        response = SP.zeros(n_res)
-        count = SP.zeros(n_res)
+        response = NP.zeros(n_res)
+        count = NP.zeros(n_res)
         for tree in self.trees:
             if oob:
                 response[tree.oob] += tree.predict(depth=depth, oob=oob,
@@ -297,7 +297,7 @@ class Forest(object):
         if (count == 0).sum() > 1:
             warnings.warn('not all samples have been used for learning\
                           please use more trees')
-            response[count == 0] = SP.mean(response)
+            response[count == 0] = NP.mean(response)
         return response
 
     def get_oob_error(self, depth):
@@ -369,18 +369,18 @@ class MixedForestTree(object):
         self.max_depth = 0
         # Estimate the potential number of nodes
         self.subsample = subsample
-        self.subsample_bin = SP.zeros(self.forest.n, dtype='bool')
+        self.subsample_bin = NP.zeros(self.forest.n, dtype='bool')
         self.subsample_bin[self.subsample] = True
-        self.oob = SP.arange(self.forest.n)[~self.subsample_bin]
+        self.oob = NP.arange(self.forest.n)[~self.subsample_bin]
         nr_nodes = 4*subsample.size
-        self.nodes = SP.zeros(nr_nodes, dtype='int')
-        self.best_predictor = SP.empty(nr_nodes, dtype='int')
-        self.start_index = SP.empty(nr_nodes, dtype='int')
-        self.end_index = SP.empty(nr_nodes, dtype='int')
-        self.left_child = SP.zeros(nr_nodes, dtype='int')
-        self.right_child = SP.zeros(nr_nodes, dtype='int')
-        self.parent = SP.empty(nr_nodes, dtype='int')
-        self.mean = SP.zeros(nr_nodes)
+        self.nodes = NP.zeros(nr_nodes, dtype='int')
+        self.best_predictor = NP.empty(nr_nodes, dtype='int')
+        self.start_index = NP.empty(nr_nodes, dtype='int')
+        self.end_index = NP.empty(nr_nodes, dtype='int')
+        self.left_child = NP.zeros(nr_nodes, dtype='int')
+        self.right_child = NP.zeros(nr_nodes, dtype='int')
+        self.parent = NP.empty(nr_nodes, dtype='int')
+        self.mean = NP.zeros(nr_nodes)
         # Initialize root node
         self.node_ind = 0
         self.nodes[self.node_ind] = 0
@@ -388,22 +388,22 @@ class MixedForestTree(object):
         self.end_index[self.node_ind] = subsample.size
         self.num_nodes = 1
         self.num_leafs = 0
-        self.s = SP.ones_like(self.nodes)*float('inf')
+        self.s = NP.ones_like(self.nodes)*float('inf')
         kernel = self.get_kernel()
         if not(self.forest.optimize_memory_use):
             self.X = self.forest.X[subsample]
         if self.verbose > 1:
             print('compute tree wise singular value decomposition')
-        self.S, self.U = LA.eigh(kernel + SP.eye(subsample.size)*1e-8)
-        self.Uy = SP.dot(self.U.T, self.forest.y[subsample])
+        self.S, self.U = LA.eigh(kernel + NP.eye(subsample.size)*1e-8)
+        self.Uy = NP.dot(self.U.T, self.forest.y[subsample])
         if self.verbose > 1:
             print('compute tree wise bias')
         self.mean[0] = SC.estimate_bias(self.Uy, self.U, self.S,
-                                        SP.log(self.forest.delta))
-        self.sample = SP.arange(subsample.size)
+                                        NP.log(self.forest.delta))
+        self.sample = NP.arange(subsample.size)
         ck = self.get_cross_kernel(self.oob, self.subsample)
-        self.cross_core = SP.dot(ck, LA.inv(kernel +
-                                            SP.eye(self.subsample.size) *
+        self.cross_core = NP.dot(ck, LA.inv(kernel +
+                                            NP.eye(self.subsample.size) *
                                             self.forest.delta))
         if self.verbose > 1:
             print('done initializing tree')
@@ -414,7 +414,7 @@ class MixedForestTree(object):
 
     def print_tree_rec(self, node_ind):
         if SC.is_leaf(node_ind, self.left_child):
-            return SP.str_(self.mean[node_ind])
+            return str(self.mean[node_ind])
         else:
             left_child = self.left_child[node_ind]
             right_child = self.right_child[node_ind]
@@ -453,7 +453,7 @@ class MixedForestTree(object):
                     self.parent[self.num_nodes] = self.node_ind
                     self.parent[self.num_nodes+1] = self.node_ind
                     self.forest.depth =\
-                        SP.maximum(self.get_depth(self.nodes[self.num_nodes]),
+                        NP.maximum(self.get_depth(self.nodes[self.num_nodes]),
                                    self.forest.depth)
                     if self.forest.depth > 50:
                         warnings.warn('tree depth exceeded 50, check for\
@@ -464,15 +464,15 @@ class MixedForestTree(object):
             self.node_ind += 1
 
     def get_depth(self, node):
-            depth = SP.log2(node+1)
-            return SP.floor(depth)
+            depth = NP.log2(node+1)
+            return NP.floor(depth)
 
     def get_kernel(self):
-        return self.forest.kernel[SP.ix_(self.subsample, self.subsample)]
+        return self.forest.kernel[NP.ix_(self.subsample, self.subsample)]
 
     def get_cross_kernel(self, oob, subsample):
         return (self.forest.kernel +
-                self.forest.delta*SP.eye(self.forest.n))[SP.ix_(oob, subsample)]
+                self.forest.delta*NP.eye(self.forest.n))[NP.ix_(oob, subsample)]
 
     def predict(self, X=None, depth=float('inf'), oob=False, conf=False):
         ##################################################
@@ -491,20 +491,20 @@ class MixedForestTree(object):
         if conf:
             mean = self.predict(self.forest.X[self.subsample], depth=depth)
             # TODO this dot product can be cached
-            response += SP.dot(self.cross_core,
+            response += NP.dot(self.cross_core,
                                self.forest.y[self.subsample].reshape(-1)-mean)
         return response
 
     def predict_cpp(self, X, depth):
         # Ensure consistency to Cpp data type
-        X = SP.array(X, dtype='float')
+        X = NP.array(X, dtype='float')
         return dlimix_legacy.predict_lmm_forest(self.nodes, self.left_child,
                                         self.right_child, self.best_predictor,
                                         self.mean, self.s, X, depth).reshape(-1)
 
     def predict_py(self, X, depth):
-        response = SP.empty(X.shape[0])
-        for i in SP.arange(X.shape[0]):
+        response = NP.empty(X.shape[0])
+        for i in NP.arange(X.shape[0]):
             response[i] = self.predict_rec(0, X[i, :], depth)
         return response
 
@@ -531,12 +531,12 @@ class MixedForestTree(object):
         left_end = node_start+left_indexes.sum()
         # Resort to make split possible
         self.sample[node_start:node_end] =\
-            SP.hstack((left_samples, right_samples))
+            NP.hstack((left_samples, right_samples))
         return left_end
 
     def split_node(self, node_ind):
         noderange = self.sample[self.start_index[node_ind]:self.end_index[node_ind]]
-        rmind = SP.random.permutation(self.forest.m)[:self.forest.max_features]
+        rmind = NP.random.permutation(self.forest.m)[:self.forest.max_features]
         mBest = -1
         sBest = -float('inf')
         left_mean = None
@@ -546,8 +546,8 @@ class MixedForestTree(object):
             n_slice = 10
         else:
             n_slice = 1
-        intv = SP.floor(n_slice*SP.arange(rmind.size)/rmind.size)
-        for slc in SP.arange(n_slice):
+        intv = NP.floor(n_slice*NP.arange(rmind.size)/rmind.size)
+        for slc in NP.arange(n_slice):
             rmind_slice = rmind[intv==slc]
             X = self.get_X_slice(rmind_slice)
             Covariates = SC.get_covariates(node_ind,
@@ -585,8 +585,8 @@ class MixedForestTree(object):
         self.end_index[self.node_ind] = self.subsample.size
         self.num_nodes = 1
         self.num_leafs = 0
-        self.left_child = SP.zeros_like(self.left_child)
-        self.right_child = SP.zeros_like(self.right_child)
+        self.left_child = NP.zeros_like(self.left_child)
+        self.right_child = NP.zeros_like(self.right_child)
 
     def clear_data(self):
         '''

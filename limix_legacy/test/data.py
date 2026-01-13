@@ -1,5 +1,5 @@
 """Datasets for LMM tests"""
-import scipy as SP
+import numpy as NP
 import glob
 import re
 import os
@@ -15,12 +15,12 @@ def load(directory):
     for fn in FL:
         fn_ = os.path.split(fn)[-1] #only keep the filename
         name = pattern.match(fn_).group(1)
-        RV[name] = SP.loadtxt(fn)
+        RV[name] = NP.loadtxt(fn)
     return RV
 
 def dump(R,directory):
     for r in list(R.keys()):
         fn = os.path.join(directory,r+filetype)
-        SP.savetxt(fn,R[r])
+        NP.savetxt(fn,R[r])
     
     

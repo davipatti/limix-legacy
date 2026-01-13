@@ -18,7 +18,7 @@ qtl.py contains wrappers around C++ Limix objects to streamline common tasks in 
 import numpy as np
 import scipy.stats as st
 import limix_legacy
-import scipy as sp
+import numpy as np
 import limix_legacy.deprecated
 import limix_legacy.deprecated as dlimix_legacy
 import limix_legacy.deprecated.utils.preprocess as preprocess
@@ -49,7 +49,7 @@ class lmm:
 		"""
 		#create column of 1 for fixed if nothing provide
 		if len(pheno.shape)==1:
-			pheno = pheno[:,sp.newaxis]
+			pheno = pheno[:,np.newaxis]
 
 		self.verbose = dlimix_legacy.getVerbose(verbose)
 		self.snps = snps
@@ -533,7 +533,7 @@ def forward_lmm(snps,pheno,K=None,covs=None,qvalues=False,threshold=5e-8,maxiter
     pvall = []
     pv = lm.getPv().ravel()
     #hack to avoid issues with degenerate pv
-    pv[sp.isnan(pv)] = 1
+    pv[np.isnan(pv)] = 1
     pvall.append(pv)
     imin= pv.argmin()
     niter = 1
@@ -559,7 +559,7 @@ def forward_lmm(snps,pheno,K=None,covs=None,qvalues=False,threshold=5e-8,maxiter
         lm.setCovs(covs)
         lm.process()
         pv = lm.getPv().ravel()
-        pv[sp.isnan(pv)] = 1
+        pv[np.isnan(pv)] = 1
         pvall.append(pv)
         imin= pv.argmin()
         if qvalues:

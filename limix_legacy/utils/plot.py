@@ -15,6 +15,7 @@
 import sys
 import scipy as sp
 import numpy as np
+import numpy as np
 import pdb
 import scipy.stats as st
 import copy
@@ -54,12 +55,12 @@ def plot_manhattan(posCum,pv,chromBounds=None,
 		thr = 0.01/float(posCum.shape[0])
 
 	if lim==None:
-		lim=-1.2*sp.log10(sp.minimum(pv.min(),thr))
+		lim=-1.2*np.log10(np.minimum(pv.min(),thr))
 
 	if chromBounds is None:
-		chromBounds = sp.array([[0,posCum.max()]])
+		chromBounds = np.array([[0,posCum.max()]])
 	else:
-		chromBounds = sp.concatenate([chromBounds,sp.array([posCum.max()])])
+		chromBounds = np.concatenate([chromBounds,np.array([posCum.max()])])
 
 
 	n_chroms = chromBounds.shape[0]
@@ -84,22 +85,22 @@ def plot_manhattan(posCum,pv,chromBounds=None,
 	else:
 		Isign = qv<thr
 
-	pl.plot(posCum[~Isign],-sp.log10(pv[~Isign]),'.',color=colorNS,ms=5,alpha=alphaNS,label=labelNS)
-	pl.plot(posCum[Isign], -sp.log10(pv[Isign]), '.',color=colorS,ms=5,alpha=alphaS,label=labelS)
+	pl.plot(posCum[~Isign],-np.log10(pv[~Isign]),'.',color=colorNS,ms=5,alpha=alphaNS,label=labelNS)
+	pl.plot(posCum[Isign], -np.log10(pv[Isign]), '.',color=colorS,ms=5,alpha=alphaS,label=labelS)
 
 	if qv is not None:
-		pl.plot([0,posCum.max()],[-sp.log10(thr),-sp.log10(thr)],'--',color='Gray')
+		pl.plot([0,posCum.max()],[-np.log10(thr),-np.log10(thr)],'--',color='Gray')
 
 	pl.ylim(0,lim)
 
 	pl.ylabel('-log$_{10}$pv')
 	pl.xlim(0,posCum.max())
-	xticks = sp.array([chromBounds[i:i+2].mean() for i in range(chromBounds.shape[0]-1)])
+	xticks = np.array([chromBounds[i:i+2].mean() for i in range(chromBounds.shape[0]-1)])
 	plt.set_xticks(xticks)
 	pl.xticks(fontsize=6)
 
 	if xticklabels:
-		plt.set_xticklabels(sp.arange(1,n_chroms+1))
+		plt.set_xticklabels(np.arange(1,n_chroms+1))
 		pl.xlabel('genetic position')
 	else:
 		plt.set_xticklabels([])
@@ -112,11 +113,11 @@ def plot_manhattan(posCum,pv,chromBounds=None,
 
 def _qqplot_bar(M=1000000, alphaLevel = 0.05, distr = 'log10'):
 	"""calculate theoretical expectations for qqplot"""
-	mRange=10**(sp.arange(sp.log10(0.5),sp.log10(M-0.5)+0.1,0.1));#should be exp or 10**?
+	mRange=10**(np.arange(np.log10(0.5),np.log10(M-0.5)+0.1,0.1));#should be exp or 10**?
 	numPts=len(mRange);
-	betaalphaLevel=sp.zeros(numPts);#down in the plot
-	betaOneMinusalphaLevel=sp.zeros(numPts);#up in the plot
-	betaInvHalf=sp.zeros(numPts);
+	betaalphaLevel=np.zeros(numPts);#down in the plot
+	betaOneMinusalphaLevel=np.zeros(numPts);#up in the plot
+	betaInvHalf=np.zeros(numPts);
 	for n in range(numPts):
 	   m=mRange[n]; #numPLessThanThresh=m;
 	   betaInvHalf[n]=st.beta.ppf(0.5,m,M-m);
@@ -144,9 +145,9 @@ def qqplot(pv, distr = 'log10', alphaLevel = 0.05):
 	assert shape_ok, 'qqplot requires a 1D array of p-values'
 
 	tests = pv.shape[0]
-	pnull = (0.5 + sp.arange(tests))/tests
+	pnull = (0.5 + np.arange(tests))/tests
 	# pnull = np.sort(np.random.uniform(size = tests))
-	Ipv = sp.argsort(pv)
+	Ipv = np.argsort(pv)
 
 	if distr == 'chi2':
 	    qnull = sp.stats.chi2.isf(pnull, 1)
@@ -155,8 +156,8 @@ def qqplot(pv, distr = 'log10', alphaLevel = 0.05):
 	    yl = '$\chi^2$ quantiles'
 
 	if distr == 'log10':
-	    qnull = -sp.log10(pnull)
-	    qemp = -sp.log10(pv[Ipv])
+	    qnull = -np.log10(pnull)
+	    qemp = -np.log10(pv[Ipv])
 
 	    xl = '-log10(P) observed'
 	    yl = '-log10(P) expected'
@@ -169,11 +170,11 @@ def qqplot(pv, distr = 'log10', alphaLevel = 0.05):
 	if alphaLevel is not None:
 	    if distr == 'log10':
 	        betaUp, betaDown, theoreticalPvals = _qqplot_bar(M=tests,alphaLevel=alphaLevel,distr=distr)
-	        lower = -sp.log10(theoreticalPvals-betaDown)
-	        upper = -sp.log10(theoreticalPvals+betaUp)
-	        plt.fill_between(-sp.log10(theoreticalPvals),lower,upper,color='grey',alpha=0.5)
-	        #plt.plot(-sp.log10(theoreticalPvals),lower,'g-.')
-	        #plt.plot(-sp.log10(theoreticalPvals),upper,'g-.')
+	        lower = -np.log10(theoreticalPvals-betaDown)
+	        upper = -np.log10(theoreticalPvals+betaUp)
+	        plt.fill_between(-np.log10(theoreticalPvals),lower,upper,color='grey',alpha=0.5)
+	        #plt.plot(-np.log10(theoreticalPvals),lower,'g-.')
+	        #plt.plot(-np.log10(theoreticalPvals),upper,'g-.')
 
 
 def plot_normal(x=None, mean_x=None,std_x=None,color='red',linewidth=2,alpha=1,bins=20,xlim=False,plot_mean=True,plot_std=False,plot_2std=True,figure=None,annotate=True,histogram=True):

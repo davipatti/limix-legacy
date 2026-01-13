@@ -1,5 +1,5 @@
 import sys
-import scipy as SP
+import numpy as NP
 import h5py
 import pdb
 
@@ -30,7 +30,7 @@ def smartSum(x,key,value):
 def dumpDictHdf5(RV,o):
     """ Dump a dictionary where each page is a list or an array """
     for key in list(RV.keys()):
-        o.create_dataset(name=key,data=SP.array(RV[key]),chunks=True,compression='gzip')
+        o.create_dataset(name=key,data=NP.array(RV[key]),chunks=True,compression='gzip')
 
 def smartDumpDictHdf5(RV,o):
     """ Dump a dictionary where each page is a list or an array or still a dictionary (in this case, it iterates)"""
@@ -39,5 +39,5 @@ def smartDumpDictHdf5(RV,o):
             g = o.create_group(key)
             smartDumpDictHdf5(RV[key],g)
         else:
-            o.create_dataset(name=key,data=SP.array(RV[key]),chunks=True,compression='gzip')
+            o.create_dataset(name=key,data=NP.array(RV[key]),chunks=True,compression='gzip')
 

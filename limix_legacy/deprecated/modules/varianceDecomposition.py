@@ -14,6 +14,7 @@
 
 import sys
 import scipy as sp
+import numpy as np
 import scipy.linalg
 import scipy.stats
 import limix_legacy.deprecated as dlimix_legacy
@@ -53,13 +54,13 @@ class VarianceDecomposition:
 
         #check whether Y is a vector, if yes reshape
         if (len(Y.shape)==1):
-            Y = Y[:,sp.newaxis]
+            Y = Y[:,np.newaxis]
 
         #create column of 1 for fixed if nothing providede
         self.N       = Y.shape[0]
         self.P       = Y.shape[1]
         self.Nt      = self.N*self.P
-        self.Iok     = ~(sp.isnan(Y).any(axis=1))
+        self.Iok     = ~(np.isnan(Y).any(axis=1))
 
         #outsourced to handle missing values:
         if standardize:
@@ -109,7 +110,7 @@ class VarianceDecomposition:
             Y=preprocess.standardize(Y)
 
         #check that missing values match the current structure
-        assert (~(sp.isnan(Y).any(axis=1))==self.Iok).all(), 'VarianceDecomposition:: pattern of missing values needs to match Y given at initialization'
+        assert (~(np.isnan(Y).any(axis=1))==self.Iok).all(), 'VarianceDecomposition:: pattern of missing values needs to match Y given at initialization'
 
         self.Y = Y
         self.vd.setPheno(Y)
@@ -157,7 +158,7 @@ class VarianceDecomposition:
 
         if is_noise:
             assert self.noisPos is None, 'VarianceDecomposition:: Noise term already exists'
-            K  = sp.eye(self.N)
+            K  = np.eye(self.N)
             Kcross = None
             self.noisPos = self.n_randEffs
         else:
@@ -202,15 +203,15 @@ class VarianceDecomposition:
 
         Args:
             F:     sample design matrix for the fixed effect [N,K]
-            A:     trait design matrix for the fixed effect (e.g. sp.ones((1,P)) common effect; sp.eye(P) any effect) [L,P]
+            A:     trait design matrix for the fixed effect (e.g. np.ones((1,P)) common effect; np.eye(P) any effect) [L,P]
             Ftest: sample design matrix for test samples [Ntest,K]
         """
         if A is None:
-            A = sp.eye(self.P)
+            A = np.eye(self.P)
         if F is None:
-            F = sp.ones((self.N,1))
+            F = np.ones((self.N,1))
             if self.Ntest is not None:
-                Ftest = sp.ones((self.Ntest,1))
+                Ftest = np.ones((self.Ntest,1))
 
         assert A.shape[1]==self.P, 'VarianceDecomposition:: A has incompatible shape'
         assert F.shape[0]==self.N, 'VarianceDecimposition:: F has incompatible shape'
@@ -321,15 +322,15 @@ class VarianceDecomposition:
             if not perturb:        n_times = 1
 
         if fixed0 is None:
-            fixed0 = sp.zeros_like(self.gp.getParams()['dataTerm'])
+            fixed0 = np.zeros_like(self.gp.getParams()['dataTerm'])
 
         for i in range(n_times):
             if init_method=='random':
                 scales1 = self._getScalesRand()
-                fixed1  = pertSize*sp.randn(fixed0.shape[0],fixed0.shape[1])
+                fixed1  = pertSize*np.random.randn(fixed0.shape[0],fixed0.shape[1])
             elif perturb:
                 scales1 = scales0+pertSize*self._perturbation()
-                fixed1  = fixed0+pertSize*sp.randn(fixed0.shape[0],fixed0.shape[1])
+                fixed1  = fixed0+pertSize*np.random.randn(fixed0.shape[0],fixed0.shape[1])
             else:
                 scales1 = scales0
                 fixed1  = fixed0
@@ -367,20 +368,20 @@ class VarianceDecomposition:
 
         opt_list = []
 
-        fixed0 = sp.zeros_like(self.gp.getParams()['dataTerm'])
+        fixed0 = np.zeros_like(self.gp.getParams()['dataTerm'])
 
         # minimize n_times
         for i in range(n_times):
 
             scales1 = self._getScalesRand()
-            fixed1  = 1e-1*sp.randn(fixed0.shape[0],fixed0.shape[1])
+            fixed1  = 1e-1*np.random.randn(fixed0.shape[0],fixed0.shape[1])
             conv = self.trainGP(fast=fast,scales0=scales1,fixed0=fixed1,lambd=lambd,lambd_g=lambd_g,lambd_n=lambd_n)
 
             if conv:
                 # compare with previous minima
                 temp=1
                 for j in range(len(opt_list)):
-                    if sp.allclose(abs(self.getScales()),abs(opt_list[j]['scales'])):
+                    if np.allclose(abs(self.getScales()),abs(opt_list[j]['scales'])):
                         temp=0
                         opt_list[j]['counter']+=1
                         break
@@ -393,7 +394,7 @@ class VarianceDecomposition:
 
 
         # sort by LML
-        LML = sp.array([opt_list[i]['LML'] for i in range(len(opt_list))])
+        LML = np.array([opt_list[i]['LML'] for i in range(len(opt_list))])
         index   = LML.argsort()[::-1]
         out = []
         if verbose:
@@ -438,7 +439,7 @@ class VarianceDecomposition:
         if scales is None:
             for term_i in range(self.n_randEffs):
                 n_scales = self.vd.getTerm(term_i).getNumberScales()
-                self.vd.getTerm(term_i).setScales(sp.array(sp.randn(n_scales)))
+                self.vd.getTerm(term_i).setScales(np.array(np.random.randn(n_scales)))
         elif term_num is None:
             assert scales.shape[0]==self.vd.getNumberScales(), 'incompatible shape'
             index = 0
@@ -490,7 +491,7 @@ class VarianceDecomposition:
         assert self.P>1, 'Trait covars not defined for single trait analysis'
 
         if term_i is None:
-            RV=sp.zeros((self.P,self.P))
+            RV=np.zeros((self.P,self.P))
             for term_i in range(self.n_randEffs): RV+=self.vd.getTerm(term_i).getTraitCovar().K()
         else:
             assert term_i<self.n_randEffs, 'Term index non valid'
@@ -509,7 +510,7 @@ class VarianceDecomposition:
             estimated trait correlation coefficient matrix
         """
         cov = self.getTraitCovar(term_i)
-        stds=sp.sqrt(cov.diagonal())[:,sp.newaxis]
+        stds=np.sqrt(cov.diagonal())[:,np.newaxis]
         RV = cov/stds/stds.T
         return RV
 
@@ -524,13 +525,13 @@ class VarianceDecomposition:
             variance components of all random effects on all phenotypes [P, n_randEffs matrix]
         """
         if self.P>1:
-            RV=sp.zeros((self.P,self.n_randEffs))
+            RV=np.zeros((self.P,self.n_randEffs))
             for term_i in range(self.n_randEffs):
                 RV[:,term_i] = self.getTraitCovar(term_i).diagonal()
         else:
-            RV=self.getScales()[sp.newaxis,:]**2
+            RV=self.getScales()[np.newaxis,:]**2
         if univariance:
-            RV /= RV.sum(1)[:,sp.newaxis]
+            RV /= RV.sum(1)[:,np.newaxis]
         return RV
 
 
@@ -555,12 +556,12 @@ class VarianceDecomposition:
             for term in range(term_i-1):
                 par_index += self.vd.getTerm(term_i).getNumberScales()
             Sigma1 = self._getLaplaceCovar()[par_index:(par_index+n_params),:][:,par_index:(par_index+n_params)]
-            out = sp.zeros((self.P,self.P))
+            out = np.zeros((self.P,self.P))
             for param_i in range(n_params):
                 out += C.Kgrad_param(param_i)**2*Sigma1[param_i,param_i]
                 for param_j in range(param_i):
                     out += 2*abs(C.Kgrad_param(param_i)*C.Kgrad_param(param_j))*Sigma1[param_i,param_j]
-        out = sp.sqrt(out)
+        out = np.sqrt(out)
         return out
 
     def getVarianceCompStdErrors(self,univariance=False):
@@ -572,13 +573,13 @@ class VarianceDecomposition:
         Returns:
             standard errors on variance components [P, n_randEffs matrix]
         """
-        RV=sp.zeros((self.P,self.n_randEffs))
+        RV=np.zeros((self.P,self.n_randEffs))
         for term_i in range(self.n_randEffs):
             #RV[:,term_i] = self.getTraitCovarStdErrors(term_i).diagonal()
             RV[:,term_i] = self.getTraitCovarStdErrors(term_i)
         var = self.getVarianceComps()
         if univariance:
-            RV /= var.sum(1)[:,sp.newaxis]
+            RV /= var.sum(1)[:,np.newaxis]
         return RV
 
     """
@@ -607,7 +608,7 @@ class VarianceDecomposition:
         if self.fast==False:
             KiY = KiY.reshape(self.P,self.N).T
 
-        Ypred = sp.zeros((self.Ntest,self.P))
+        Ypred = np.zeros((self.Ntest,self.P))
 
         # predicting from random effects
         for term_i in use_random:
@@ -616,10 +617,10 @@ class VarianceDecomposition:
                 if Kstar is None:
                     warnings.warn('warning: random effect term %d not used for predictions as it has None cross covariance'%term_i)
                     continue
-                term  = sp.dot(Kstar.T,KiY)
+                term  = np.dot(Kstar.T,KiY)
                 if self.P>1:
                     C    = self.getTraitCovar(term_i)
-                    term = sp.dot(term,C)
+                    term = np.dot(term,C)
                 else:
                     term *= self.getVarianceComps()[0,term_i]
                 Ypred += term
@@ -632,11 +633,11 @@ class VarianceDecomposition:
             if Fstar is None:
                 warnings.warn('warning: fixed effect term %d not used for predictions as it has None test sample design'%term_i)
                 continue
-            if self.P==1:    A = sp.eye(1)
+            if self.P==1:    A = np.eye(1)
             else:            A = self.vd.getDesign(term_i)
             Fstar = self.Fstar[term_i]
             W = weights[w_i:w_i+A.shape[0],0:1].T
-            term = sp.dot(Fstar,sp.dot(W,A))
+            term = np.dot(Fstar,np.dot(W,A))
             w_i += A.shape[0]
             Ypred += term
 
@@ -659,16 +660,16 @@ class VarianceDecomposition:
         verbose = dlimix_legacy.getVerbose(verbose)
 
         # split samples into training and test
-        sp.random.seed(seed)
-        r = sp.random.permutation(self.Y.shape[0])
+        np.random.seed(seed)
+        r = np.random.permutation(self.Y.shape[0])
         nfolds = 10
-        Icv = sp.floor(((sp.ones((self.Y.shape[0]))*nfolds)*r)/self.Y.shape[0])
+        Icv = np.floor(((np.ones((self.Y.shape[0]))*nfolds)*r)/self.Y.shape[0])
 
         RV = {}
-        if self.P==1:  RV['var'] = sp.zeros((nfolds,self.n_randEffs))
-        else:          RV['var'] = sp.zeros((nfolds,self.P,self.n_randEffs))
+        if self.P==1:  RV['var'] = np.zeros((nfolds,self.n_randEffs))
+        else:          RV['var'] = np.zeros((nfolds,self.P,self.n_randEffs))
 
-        Ystar = sp.zeros_like(self.Y)
+        Ystar = np.zeros_like(self.Y)
 
         for fold_j in range(n_folds):
 
@@ -723,7 +724,7 @@ class VarianceDecomposition:
                 Ystar[Itest,:] = vc.predictPhenos()
             else:
                 warnings.warn('not converged for fold %d' % fold_j)
-                Ystar[Itest,:] = sp.nan
+                Ystar[Itest,:] = np.nan
 
         return Ystar,RV
 
@@ -738,11 +739,11 @@ class VarianceDecomposition:
             fast:   Boolean indicator denoting if fast implementation is to consider
                     if fast is None (default) and possible in the specifc situation, fast implementation is considered
         """
-        if fast is None:        fast = (self.n_randEffs==2) and (self.P>1) and (~sp.isnan(self.Y).any())
+        if fast is None:        fast = (self.n_randEffs==2) and (self.P>1) and (~np.isnan(self.Y).any())
         elif fast:
             assert self.n_randEffs==2, 'VarianceDecomposition: for fast inference number of random effect terms must be == 2'
             assert self.P>1, 'VarianceDecomposition: for fast inference number of traits must be > 1'
-            assert not sp.isnan(self.Y).any(), 'VarianceDecomposition: fast inference available only for complete phenotype designs'
+            assert not np.isnan(self.Y).any(), 'VarianceDecomposition: fast inference available only for complete phenotype designs'
         if fast:    self.vd.initGPkronSum()
         else:        self.vd.initGPbase()
         self.gp=self.vd.getGP()
@@ -766,57 +767,57 @@ class VarianceDecomposition:
         cov = dlimix_legacy.CSumCF()
         if trait_covar_type=='freeform':
             cov.addCovariance(dlimix_legacy.CFreeFormCF(self.P))
-            L = sp.eye(self.P)
-            diag = sp.concatenate([L[i,:(i+1)] for i in range(self.P)])
+            L = np.eye(self.P)
+            diag = np.concatenate([L[i,:(i+1)] for i in range(self.P)])
         elif trait_covar_type=='fixed':
             assert fixed_trait_covar is not None, 'VarianceDecomposition:: set fixed_trait_covar'
             assert fixed_trait_covar.shape[0]==self.N, 'VarianceDecomposition:: Incompatible shape for fixed_trait_covar'
             assert fixed_trait_covar.shape[1]==self.N, 'VarianceDecomposition:: Incompatible shape for fixed_trait_covar'
             cov.addCovariance(dlimix_legacy.CFixedCF(fixed_trait_covar))
-            diag = sp.zeros(1)
+            diag = np.zeros(1)
         elif trait_covar_type=='diag':
             cov.addCovariance(dlimix_legacy.CDiagonalCF(self.P))
-            diag = sp.ones(self.P)
+            diag = np.ones(self.P)
         elif trait_covar_type=='lowrank':
             cov.addCovariance(dlimix_legacy.CLowRankCF(self.P,rank))
-            diag = sp.zeros(self.P*rank)
+            diag = np.zeros(self.P*rank)
         elif trait_covar_type=='lowrank_id':
             cov.addCovariance(dlimix_legacy.CLowRankCF(self.P,rank))
-            cov.addCovariance(dlimix_legacy.CFixedCF(sp.eye(self.P)))
-            diag = sp.concatenate([sp.zeros(self.P*rank),sp.ones(1)])
+            cov.addCovariance(dlimix_legacy.CFixedCF(np.eye(self.P)))
+            diag = np.concatenate([np.zeros(self.P*rank),np.ones(1)])
         elif trait_covar_type=='lowrank_diag':
             cov.addCovariance(dlimix_legacy.CLowRankCF(self.P,rank))
             cov.addCovariance(dlimix_legacy.CDiagonalCF(self.P))
-            diag = sp.concatenate([sp.zeros(self.P*rank),sp.ones(self.P)])
+            diag = np.concatenate([np.zeros(self.P*rank),np.ones(self.P)])
         elif trait_covar_type=='lowrank_diag1':
             assert d.shape[0]==self.P, 'dimension mismatch for d'
             cov1 = dlimix_legacy.CSumCF()
             cov1.addCovariance(dlimix_legacy.CLowRankCF(self.P,rank))
             cov1.addCovariance(dlimix_legacy.CDiagonalCF(self.P))
             cov.addCovariance(dlimix_legacy.CFixedDiagonalCF(cov1,d))
-            diag = sp.concatenate([sp.zeros(self.P*rank),sp.ones(self.P)])
+            diag = np.concatenate([np.zeros(self.P*rank),np.ones(self.P)])
         elif trait_covar_type=='freeform1':
             assert d.shape[0]==self.P, 'dimension mismatch for d'
             cov.addCovariance(dlimix_legacy.CFixedDiagonalCF(dlimix_legacy.CFreeFormCF(self.P),d))
-            L = sp.eye(self.P)
-            diag = sp.concatenate([L[i,:(i+1)] for i in range(self.P)])
+            L = np.eye(self.P)
+            diag = np.concatenate([L[i,:(i+1)] for i in range(self.P)])
         elif trait_covar_type=='block':
-            cov.addCovariance(dlimix_legacy.CFixedCF(sp.ones((self.P,self.P))))
-            diag = sp.zeros(1)
+            cov.addCovariance(dlimix_legacy.CFixedCF(np.ones((self.P,self.P))))
+            diag = np.zeros(1)
         elif trait_covar_type=='block_id':
-            cov.addCovariance(dlimix_legacy.CFixedCF(sp.ones((self.P,self.P))))
-            cov.addCovariance(dlimix_legacy.CFixedCF(sp.eye(self.P)))
-            diag = sp.concatenate([sp.zeros(1),sp.ones(1)])
+            cov.addCovariance(dlimix_legacy.CFixedCF(np.ones((self.P,self.P))))
+            cov.addCovariance(dlimix_legacy.CFixedCF(np.eye(self.P)))
+            diag = np.concatenate([np.zeros(1),np.ones(1)])
         elif trait_covar_type=='block_diag':
-            cov.addCovariance(dlimix_legacy.CFixedCF(sp.ones((self.P,self.P))))
+            cov.addCovariance(dlimix_legacy.CFixedCF(np.ones((self.P,self.P))))
             cov.addCovariance(dlimix_legacy.CDiagonalCF(self.P))
-            diag = sp.concatenate([sp.zeros(1),sp.ones(self.P)])
+            diag = np.concatenate([np.zeros(1),np.ones(self.P)])
         else:
             assert True==False, 'VarianceDecomposition:: trait_covar_type not valid'
         if jitter>0:
-            _cov = dlimix_legacy.CFixedCF(sp.eye(self.P))
-            _cov.setParams(sp.array([sp.sqrt(jitter)]))
-            _cov.setParamMask(sp.zeros(1))
+            _cov = dlimix_legacy.CFixedCF(np.eye(self.P))
+            _cov.setParams(np.array([np.sqrt(jitter)]))
+            _cov.setParamMask(np.zeros(1))
             cov.addCovariance(_cov)
         return cov,diag
 
@@ -834,14 +835,14 @@ class VarianceDecomposition:
         """
         verbose = dlimix_legacy.getVerbose(verbose)
         # Fit single trait model
-        varg  = sp.zeros(self.P)
-        varn  = sp.zeros(self.P)
-        fixed = sp.zeros((1,self.P))
+        varg  = np.zeros(self.P)
+        varn  = np.zeros(self.P)
+        fixed = np.zeros((1,self.P))
 
         for p in range(self.P):
             y = self.Y[:,p:p+1]
             # check if some sull value
-            I  = sp.isnan(y[:,0])
+            I  = np.isnan(y[:,0])
             if I.sum()>0:
                 y  = y[~I,:]
                 _K = K[~I,:][:,~I]
@@ -849,13 +850,13 @@ class VarianceDecomposition:
                 _K  = copy.copy(K)
             lmm = dlimix_legacy.CLMM()
             lmm.setK(_K)
-            lmm.setSNPs(sp.ones((y.shape[0],1)))
+            lmm.setSNPs(np.ones((y.shape[0],1)))
             lmm.setPheno(y)
-            lmm.setCovs(sp.zeros((y.shape[0],1)))
+            lmm.setCovs(np.zeros((y.shape[0],1)))
             lmm.setVarcompApprox0(-20, 20, 1000)
             lmm.process()
-            delta = sp.exp(lmm.getLdelta0()[0,0])
-            Vtot  = sp.exp(lmm.getLSigma()[0,0])
+            delta = np.exp(lmm.getLdelta0()[0,0])
+            Vtot  = np.exp(lmm.getLSigma()[0,0])
 
             varg[p] = Vtot
             varn[p] = delta*Vtot
@@ -885,8 +886,8 @@ class VarianceDecomposition:
         assert self.trait_covar_type[termx] not in ['lowrank','block','fixed'], 'VarianceDecimposition:: diagonal initializaiton not posible for such a parametrization'
         scales = []
         res = self._getH2singleTrait(self.vd.getTerm(termx).getK())
-        scaleg = sp.sqrt(res['varg'].mean())
-        scalen = sp.sqrt(res['varn'].mean())
+        scaleg = np.sqrt(res['varg'].mean())
+        scalen = np.sqrt(res['varn'].mean())
         for term_i in range(self.n_randEffs):
             if term_i==termx:
                 _scales = scaleg*self.diag[term_i]
@@ -895,9 +896,9 @@ class VarianceDecomposition:
             else:
                 _scales = 0.*self.diag[term_i]
             if self.jitter[term_i]>0:
-                _scales = sp.concatenate((_scales,sp.array([sp.sqrt(self.jitter[term_i])])))
+                _scales = np.concatenate((_scales,np.array([np.sqrt(self.jitter[term_i])])))
             scales.append(_scales)
-        return sp.concatenate(scales)
+        return np.concatenate(scales)
 
     def _getScalesPairwise(self,verbose=False, initDiagonal=False):
         """
@@ -905,7 +906,7 @@ class VarianceDecomposition:
         Uses a single trait model for initializing variances and
         a pairwise model to initialize correlations
         """
-        var = sp.zeros((self.P,2))
+        var = np.zeros((self.P,2))
 
         if initDiagonal:
             #1. fit single trait model
@@ -918,7 +919,7 @@ class VarianceDecomposition:
                 else:
                     K = self.vd.getTerm(term_i).getK()
                     vc.addRandomEffect(K=K)
-            scales0 = sp.sqrt(0.5)*sp.ones(2)
+            scales0 = np.sqrt(0.5)*np.ones(2)
 
             for p in range(self.P):
                 if verbose: print(('   .. trait %d' % p))
@@ -939,7 +940,7 @@ class VarianceDecomposition:
                         pass
                     else:
                         K = self.vd.getTerm(term_i).getK()
-                varY = sp.var(self.Y[:,p:p+1])
+                varY = np.var(self.Y[:,p:p+1])
                 lmm = fastLMM(X=covariates, Y=self.Y[:,p:p+1], G=None, K=K)
                 opt = lmm.findH2(nGridH2=100)
                 h2 = opt['h2']
@@ -949,7 +950,7 @@ class VarianceDecomposition:
         else:
             if verbose:
                 print('.. random initialization of diagonal')
-            var = sp.random.randn(var.shape[0],var.shape[1])
+            var = np.random.randn(var.shape[0],var.shape[1])
             var = var*var + 0.001
         #2. fit pairwise model
         if verbose:
@@ -961,35 +962,35 @@ class VarianceDecomposition:
             else:
                 K = self.vd.getTerm(term_i).getK()
                 vc.addRandomEffect(K=K,trait_covar_type='freeform')
-        rho_g = sp.ones((self.P,self.P))
-        rho_n = sp.ones((self.P,self.P))
+        rho_g = np.ones((self.P,self.P))
+        rho_n = np.ones((self.P,self.P))
         for p1 in range(self.P):
             for p2 in range(p1):
                 if verbose:
                     print(('   .. fit pair (%d,%d)'%(p1,p2)))
                 vc.setY(self.Y[:,[p1,p2]])
-                scales0 = sp.sqrt(sp.array([var[p1,0],1e-4,var[p2,0],1e-4,var[p1,1],1e-4,var[p2,1],1e-4]))
+                scales0 = np.sqrt(np.array([var[p1,0],1e-4,var[p2,0],1e-4,var[p1,1],1e-4,var[p2,1],1e-4]))
                 conv = vc.optimize(scales0=scales0)
                 if not conv:
                     print('warning initialization not converged')
                 Cg = vc.getTraitCovar(0)
                 Cn = vc.getTraitCovar(1)
-                rho_g[p1,p2] = Cg[0,1]/sp.sqrt(Cg.diagonal().prod())
-                rho_n[p1,p2] = Cn[0,1]/sp.sqrt(Cn.diagonal().prod())
+                rho_g[p1,p2] = Cg[0,1]/np.sqrt(Cg.diagonal().prod())
+                rho_n[p1,p2] = Cn[0,1]/np.sqrt(Cn.diagonal().prod())
                 rho_g[p2,p1] = rho_g[p1,p2]
                 rho_n[p2,p1] = rho_n[p1,p2]
         #3. init
-        Cg0 = rho_g*sp.dot(sp.sqrt(var[:,0:1]),sp.sqrt(var[:,0:1].T))
-        Cn0 = rho_n*sp.dot(sp.sqrt(var[:,1:2]),sp.sqrt(var[:,1:2].T))
-        offset_g = abs(sp.minimum(sp.linalg.eigh(Cg0)[0].min(),0))+1e-4
-        offset_n = abs(sp.minimum(sp.linalg.eigh(Cn0)[0].min(),0))+1e-4
-        Cg0+=offset_g*sp.eye(self.P)
-        Cn0+=offset_n*sp.eye(self.P)
+        Cg0 = rho_g*np.dot(np.sqrt(var[:,0:1]),np.sqrt(var[:,0:1].T))
+        Cn0 = rho_n*np.dot(np.sqrt(var[:,1:2]),np.sqrt(var[:,1:2].T))
+        offset_g = abs(np.minimum(sp.linalg.eigh(Cg0)[0].min(),0))+1e-4
+        offset_n = abs(np.minimum(sp.linalg.eigh(Cn0)[0].min(),0))+1e-4
+        Cg0+=offset_g*np.eye(self.P)
+        Cn0+=offset_n*np.eye(self.P)
         Lg = sp.linalg.cholesky(Cg0)
         Ln = sp.linalg.cholesky(Cn0)
-        Cg_params0 = sp.concatenate([Lg[:,p][:p+1] for p in range(self.P)])
-        Cn_params0 = sp.concatenate([Ln[:,p][:p+1] for p in range(self.P)])
-        scales0 = sp.concatenate([Cg_params0,1e-2*sp.ones(1),Cn_params0,1e-2*sp.ones(1)])
+        Cg_params0 = np.concatenate([Lg[:,p][:p+1] for p in range(self.P)])
+        Cn_params0 = np.concatenate([Ln[:,p][:p+1] for p in range(self.P)])
+        scales0 = np.concatenate([Cg_params0,1e-2*np.ones(1),Cn_params0,1e-2*np.ones(1)])
 
         return scales0
 
@@ -1002,13 +1003,13 @@ class VarianceDecomposition:
         if self.P>1:
             scales = []
             for term_i in range(self.n_randEffs):
-                _scales = sp.randn(self.diag[term_i].shape[0])
+                _scales = np.random.randn(self.diag[term_i].shape[0])
                 if self.jitter[term_i]>0:
-                    _scales = sp.concatenate((_scales,sp.array([sp.sqrt(self.jitter[term_i])])))
+                    _scales = np.concatenate((_scales,np.array([np.sqrt(self.jitter[term_i])])))
                 scales.append(_scales)
-            scales = sp.concatenate(scales)
+            scales = np.concatenate(scales)
         else:
-            scales=sp.randn(self.vd.getNumberScales())
+            scales=np.random.randn(self.vd.getNumberScales())
         return scales
 
     def _perturbation(self):
@@ -1019,13 +1020,13 @@ class VarianceDecomposition:
         if self.P>1:
             scales = []
             for term_i in range(self.n_randEffs):
-                _scales = sp.randn(self.diag[term_i].shape[0])
+                _scales = np.random.randn(self.diag[term_i].shape[0])
                 if self.jitter[term_i]>0:
-                    _scales  = sp.concatenate((_scales,sp.zeros(1)))
+                    _scales  = np.concatenate((_scales,np.zeros(1)))
                 scales.append(_scales)
-            scales = sp.concatenate(scales)
+            scales = np.concatenate(scales)
         else:
-            scales = sp.randn(self.vd.getNumberScales())
+            scales = np.random.randn(self.vd.getNumberScales())
         return scales
 
     """ INTERNAL FUNCIONS FOR ESTIMATING PARAMETERS UNCERTAINTY """
@@ -1040,7 +1041,7 @@ class VarianceDecomposition:
 
         if self.cache['Hessian'] is None:
             ParamMask=self.gp.getParamMask()['covar']
-            std=sp.zeros(ParamMask.sum())
+            std=np.zeros(ParamMask.sum())
             H=self.gp.LMLhess_covar()
             It= (ParamMask[:,0]==1)
             self.cache['Hessian']=H[It,:][:,It]
@@ -1069,11 +1070,11 @@ class VarianceDecomposition:
         Ctot = self.vd.getGP().getCovar()
         Ki = sp.linalg.inv(Ctot.K())
         n_scales = self.vd.getNumberScales()
-        out = sp.zeros((n_scales,n_scales))
+        out = np.zeros((n_scales,n_scales))
         for m in range(n_scales):
-            out[m,m] = 0.5 * sp.trace(sp.dot(Ki,sp.dot(Ctot.Kgrad_param(m),sp.dot(Ki,Ctot.Kgrad_param(m)))))
+            out[m,m] = 0.5 * np.trace(np.dot(Ki,np.dot(Ctot.Kgrad_param(m),np.dot(Ki,Ctot.Kgrad_param(m)))))
             for n in range(m):
-                out[m,n]=0.5 * sp.trace(sp.dot(Ki,sp.dot(Ctot.Kgrad_param(m),sp.dot(Ki,Ctot.Kgrad_param(n)))))
+                out[m,n]=0.5 * np.trace(np.dot(Ki,np.dot(Ctot.Kgrad_param(m),np.dot(Ki,Ctot.Kgrad_param(n)))))
                 out[n,m]=out[m,n]
         return out
 
@@ -1085,6 +1086,6 @@ class VarianceDecomposition:
         """
         Sigma = self._getLaplaceCovar(min)
         n_params = self.vd.getNumberScales()
-        ModCompl = 0.5*n_params*sp.log(2*sp.pi)+0.5*sp.log(sp.linalg.det(Sigma))
+        ModCompl = 0.5*n_params*np.log(2*np.pi)+0.5*np.log(sp.linalg.det(Sigma))
         RV = min['LML']+ModCompl
         return RV

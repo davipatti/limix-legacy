@@ -49,7 +49,7 @@ class PANAMA:
         if Kpop is not None:
             self.Kpop = Kpop
         elif self.X is not None:
-            self.Kpop = sp.dot(self.X,self.X.T)
+            self.Kpop = np.dot(self.X,self.X.T)
             self.Kpop /= self.Kpop.diagonal().mean()
         else:
             assert use_Kpop==False, 'no Kpop'
@@ -70,11 +70,11 @@ class PANAMA:
         if 0:
             covar  = limix_legacy.deprecarted.CCovLinearISO(rank)
             ll  = limix_legacy.deprecated.CLikNormalIso()
-            X0 = sp.random.randn(self.N,rank)
+            X0 = np.random.randn(self.N,rank)
             X0 = PCA(self.Y,rank)[0]
-            X0 /= sp.sqrt(rank)
-            covar_params = sp.array([1.0])
-            lik_params = sp.array([1.0])
+            X0 /= np.sqrt(rank)
+            covar_params = np.array([1.0])
+            lik_params = np.array([1.0])
 
             hyperparams = limix_legacy.deprecated.CGPHyperParams()
             hyperparams['covar'] = covar_params
@@ -83,10 +83,10 @@ class PANAMA:
         
             constrainU = limix_legacy.deprecated.CGPHyperParams()
             constrainL = limix_legacy.deprecated.CGPHyperParams()
-            constrainU['covar'] = +5*sp.ones_like(covar_params);
-            constrainL['covar'] = 0*sp.ones_like(covar_params);
-            constrainU['lik'] = +5*sp.ones_like(lik_params);
-            constrainL['lik'] = 0*sp.ones_like(lik_params);
+            constrainU['covar'] = +5*np.ones_like(covar_params);
+            constrainL['covar'] = 0*np.ones_like(covar_params);
+            constrainU['lik'] = +5*np.ones_like(lik_params);
+            constrainL['lik'] = 0*np.ones_like(lik_params);
 
         if 1:
             covar  = limix_legacy.deprecated.CSumCF()
@@ -94,7 +94,7 @@ class PANAMA:
                 covar_1 =  limix_legacy.deprecated.CCovLinearARD(rank)
                 covar_params = []
                 for d in range(rank):
-                    covar_params.append(1/sp.sqrt(d+2))
+                    covar_params.append(1/np.sqrt(d+2))
             else:
                 covar_1 =  limix_legacy.deprecated.CCovLinearISO(rank)
                 covar_params = [1.0]
@@ -107,9 +107,9 @@ class PANAMA:
 
             ll  = limix_legacy.deprecated.CLikNormalIso()
             X0 = PCA(self.Y,rank)[0]
-            X0 /= sp.sqrt(rank)
-            covar_params = sp.array(covar_params)
-            lik_params = sp.array([1.0])
+            X0 /= np.sqrt(rank)
+            covar_params = np.array(covar_params)
+            lik_params = np.array([1.0])
 
             hyperparams = limix_legacy.deprecated.CGPHyperParams()
             hyperparams['covar'] = covar_params
@@ -118,9 +118,9 @@ class PANAMA:
         
             constrainU = limix_legacy.deprecated.CGPHyperParams()
             constrainL = limix_legacy.deprecated.CGPHyperParams()
-            constrainU['covar'] = +5*sp.ones_like(covar_params);
-            constrainL['covar'] = -5*sp.ones_like(covar_params);
-            constrainU['lik'] = +5*sp.ones_like(lik_params);
+            constrainU['covar'] = +5*np.ones_like(covar_params);
+            constrainL['covar'] = -5*np.ones_like(covar_params);
+            constrainU['lik'] = +5*np.ones_like(lik_params);
 
             
         gp=limix_legacy.deprecated.CGPbase(covar,ll)
@@ -154,9 +154,9 @@ class PANAMA:
         if LinearARD:
             V['LinearARD'] = covar_1.getParams()**2*covar_1.getX().var(0)
         else:
-            V['Kpanama'] = sp.array([covar_1.K().diagonal().mean()])
+            V['Kpanama'] = np.array([covar_1.K().diagonal().mean()])
         if self.use_Kpop:
-            V['Kpop'] = sp.array([covar_2.K().diagonal().mean()])
+            V['Kpop'] = np.array([covar_2.K().diagonal().mean()])
         V['noise'] = gp.getParams()['lik']**2
         self.varianceComps = V
 

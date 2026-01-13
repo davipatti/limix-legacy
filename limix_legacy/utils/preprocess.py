@@ -1,4 +1,5 @@
 import scipy as sp
+import numpy as np
 import scipy.linalg as la
 import scipy.stats as st
 
@@ -12,7 +13,7 @@ def standardize(Y,in_place=False):
     else:
         YY = Y.copy()
     for i in range(YY.shape[1]):
-        Iok = ~SP.isnan(YY[:,i])
+        Iok = ~NP.isnan(YY[:,i])
         Ym = YY[Iok,i].mean()
         YY[:,i]-=Ym
         Ys = YY[Iok,i].std()
@@ -25,8 +26,8 @@ def covar_rescaling_factor(C):
     the rescaled covariance matrix has sample variance of 1
     """
     n = C.shape[0]
-    P = sp.eye(n) - sp.ones((n,n))/float(n)
-    trPCP = sp.trace(sp.dot(P,sp.dot(C,P)))
+    P = np.eye(n) - np.ones((n,n))/float(n)
+    trPCP = np.trace(np.dot(P,np.dot(C,P)))
     r = (n-1) / trPCP
     return r
 
@@ -36,8 +37,8 @@ def covar_rescaling_factor_efficient(C):
     the rescaled covariance matrix has sample variance of 1
     """
     n = C.shape[0]
-    P = sp.eye(n) - sp.ones((n,n))/float(n)
-    CP = C - C.mean(0)[:, sp.newaxis]
+    P = np.eye(n) - np.ones((n,n))/float(n)
+    CP = C - C.mean(0)[:, np.newaxis]
     trPCP = sp.sum(P * CP)
     r = (n-1) / trPCP
     return r
@@ -55,10 +56,10 @@ def toRanks(A):
     """
     converts the columns of A to ranks
     """
-    AA=sp.zeros_like(A)
+    AA=np.zeros_like(A)
     for i in range(A.shape[1]):
         AA[:,i] = st.rankdata(A[:,i])
-    AA=sp.array(sp.around(AA),dtype="int")-1
+    AA=np.array(sp.around(AA),dtype="int")-1
     return AA
 
 def gaussianize(Y):
@@ -69,9 +70,9 @@ def gaussianize(Y):
     N,P = Y.shape
 
     YY=toRanks(Y)
-    quantiles=(sp.arange(N)+0.5)/N
+    quantiles=(np.arange(N)+0.5)/N
     gauss = st.norm.isf(quantiles)
-    Y_gauss=sp.zeros((N,P))
+    Y_gauss=np.zeros((N,P))
     for i in range(P):
         Y_gauss[:,i] = gauss[YY[:,i]]
     Y_gauss *= -1
@@ -103,7 +104,7 @@ def remove_dependent_cols(M, tol=1e-6, display=False):
     R = la.qr(M, mode='r')[0][:M.shape[1], :]
     I = (abs(R.diagonal())>tol)
     if sp.any(~I) and display:
-        print(('cols ' + str(sp.where(~I)[0]) +
+        print(('cols ' + str(np.where(~I)[0]) +
                 ' have been removed because linearly dependent on the others'))
         R = M[:,I]
     else:
@@ -117,10 +118,10 @@ def boxcox(X):
     - each phentoype is brought to a positive schale, by first subtracting the minimum value and adding 1.
     - Then each phenotype transformed by the boxcox transformation
     """
-    X_transformed = sp.zeros_like(X)
-    maxlog = sp.zeros(X.shape[1])
+    X_transformed = np.zeros_like(X)
+    maxlog = np.zeros(X.shape[1])
     for i in range(X.shape[1]):
-        i_nan = sp.isnan(X[:,i])
+        i_nan = np.isnan(X[:,i])
         values = X[~i_nan,i]
         X_transformed[i_nan,i] = X[i_nan,i]
         X_transformed[~i_nan,i], maxlog[i] = st.boxcox(values-values.min()+1.0)

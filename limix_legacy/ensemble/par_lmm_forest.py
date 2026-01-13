@@ -54,11 +54,12 @@ def build_stumps(X, y, kernel, delta):
 
 def par_fixed_effect(tc, X, oob, depth):
     import scipy as SP
+    import numpy as NP
     dview = tc[:]
     dview.block = True
     results = dview.apply(fixed_effect, *[X, oob, depth])
-    fixed_sum = SP.zeros_like(results[0][0])
-    count = SP.zeros_like(results[0][1])
+    fixed_sum = NP.zeros_like(results[0][0])
+    count = NP.zeros_like(results[0][1])
     for res in results:
         fixed_sum += res[0]
         count += res[1]
@@ -82,10 +83,11 @@ def fixed_effect(X, oob, depth):
 
 def par_further(tc, depth):
     import scipy as SP
+    import numpy as NP
     dview = tc[:]
     dview.block = True
-    depths = SP.array(dview.apply(further, *[depth]))
-    return depths[SP.argmax(depths)]
+    depths = NP.array(dview.apply(further, *[depth]))
+    return depths[NP.argmax(depths)]
      
 def further(depth):
     globals()['forest'].further(depth)
@@ -101,12 +103,12 @@ def update_delta(delta):
     return True
 
 def par_get_variable_scores(tc):
-    import scipy as SP
+    import numpy as NP
     dview = tc[:]
     dview.block = True
     results = dview.apply(get_variable_scores)
-    var_used = SP.zeros_like((results[0])[0])
-    log_importance = SP.zeros_like(var_used)
+    var_used = NP.zeros_like((results[0])[0])
+    log_importance = NP.zeros_like(var_used)
     for result in results:
         var_used +=  result[0]
         log_importance += result[1]

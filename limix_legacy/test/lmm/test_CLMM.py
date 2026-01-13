@@ -1,6 +1,6 @@
 """LMM testing code"""
 import unittest
-import scipy as SP
+import numpy as NP
 import pdb
 import limix_legacy
 import limix_legacy.deprecated as dlimix_legacy
@@ -29,10 +29,10 @@ class CLMM_test(unittest.TestCase):
             pv = lmm.getPv().ravel()
             BetaSte = lmm.getBetaSNPste().ravel()
             Beta = lmm.getBetaSNP()
-            D2pv= ((SP.log10(pv)-SP.log10(D['pv']))**2)
+            D2pv= ((NP.log10(pv)-NP.log10(D['pv']))**2)
             # D2Beta= (Beta-D['Beta'])**2
             # D2BetaSte = (BetaSte-D['BetaSte'])**2
-            RV = SP.sqrt(D2pv.mean())<1E-6
+            RV = NP.sqrt(D2pv.mean())<1E-6
             # RV = RV & (D2Beta.mean()<1E-6)
             # RV = RV & (D2BetaSte.mean()<1E-6)
             self.assertTrue(RV)
@@ -41,10 +41,10 @@ class CLMM_test(unittest.TestCase):
         D = data.load(os.path.join(self.dir_name,self.datasets[0]))
         lmm  = dlimix_legacy.CLMM()
         N = 100
-        K = SP.eye(N)
-        X = SP.randn(N,100)
-        Y = SP.randn(N+1,1)
-        Cov = SP.randn(N,1)
+        K = NP.eye(N)
+        X = NP.random.randn(N,100)
+        Y = NP.random.randn(N+1,1)
+        Cov = NP.random.randn(N,1)
         lmm.setK(K)
         lmm.setSNPs(X)
         lmm.setCovs(Cov)
@@ -59,7 +59,7 @@ class CLMM_test(unittest.TestCase):
         #test permutation function
         for dn in self.datasets:
             D = data.load(os.path.join(self.dir_name,dn))
-            perm = SP.random.permutation(D['X'].shape[0])
+            perm = NP.random.permutation(D['X'].shape[0])
             #1. set permuattion
             lmm = dlimix_legacy.CLMM()
             lmm.setK(D['K'])
@@ -68,7 +68,7 @@ class CLMM_test(unittest.TestCase):
             lmm.setPheno(D['Y'])
             if 1:
                 #pdb.set_trace()
-                perm = SP.array(perm,dtype='int32')#Windows needs int32 as long -> fix interface to accept int64 types
+                perm = NP.array(perm,dtype='int32')#Windows needs int32 as long -> fix interface to accept int64 types
             lmm.setPermutation(perm)
             lmm.process()
             pv_perm1 = lmm.getPv().ravel()
@@ -80,8 +80,8 @@ class CLMM_test(unittest.TestCase):
             lmm.setPheno(D['Y'])
             lmm.process()
             pv_perm2 = lmm.getPv().ravel()
-            D2 = (SP.log10(pv_perm1)-SP.log10(pv_perm2))**2
-            RV = SP.sqrt(D2.mean())
+            D2 = (NP.log10(pv_perm1)-NP.log10(pv_perm2))**2
+            RV = NP.sqrt(D2.mean())
             self.assertTrue(RV<1E-6)
 
 

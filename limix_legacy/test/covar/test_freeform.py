@@ -1,6 +1,6 @@
 """LMM testing code"""
 import unittest
-import scipy as SP
+import numpy as NP
 import pdb
 import limix_legacy.deprecated as dlimix_legacy
 from .covar import Acovar_test
@@ -8,104 +8,104 @@ from .covar import Acovar_test
 class CFreeFormCF_test(unittest.TestCase,Acovar_test):
     """test class for CFreeFormCF"""
     def setUp(self):
-        SP.random.seed(1)
+        NP.random.seed(1)
         self.n=4
         self.C = dlimix_legacy.CFreeFormCF(self.n)
         self.name = 'CFreeFormCF'
         self.n_params=self.C.getNumberParams()
         K = self.C.K()
-        params=SP.exp(SP.randn(self.n_params))
+        params=NP.exp(NP.random.randn(self.n_params))
         self.C.setParams(params)
 
 class CRankOneCF_test(unittest.TestCase,Acovar_test):
     """test class for CRankOneCF"""
     def setUp(self):
-        SP.random.seed(1)
+        NP.random.seed(1)
         self.n=4
         self.C = dlimix_legacy.CRankOneCF(self.n)
         self.name = 'CRankOneCF'
         self.n_params=self.C.getNumberParams()
         K = self.C.K()
-        params=SP.exp(SP.randn(self.n_params))
+        params=NP.exp(NP.random.randn(self.n_params))
         self.C.setParams(params)
 
 class CLowRankCF_test(unittest.TestCase,Acovar_test):
     """test class for CLowRankCF"""
     def setUp(self):
-        SP.random.seed(1)
+        NP.random.seed(1)
         self.n=4
         self.rank=2
         self.C = dlimix_legacy.CLowRankCF(self.n,self.rank)
         self.name = 'CLowRankCF'
         self.n_params=self.C.getNumberParams()
-        params=SP.exp(SP.randn(self.n_params))
+        params=NP.exp(NP.random.randn(self.n_params))
         self.C.setParams(params)
 
 class CDiagonalCF_test(unittest.TestCase,Acovar_test):
     """test class for CDiagonalCF"""
     def setUp(self):
-        SP.random.seed(1)
+        NP.random.seed(1)
         self.n=2
         self.C = dlimix_legacy.CDiagonalCF(self.n)
         self.name = 'CDiagonalCF'
         self.n_params=self.C.getNumberParams()
-        params=SP.exp(SP.randn(self.n_params))
+        params=NP.exp(NP.random.randn(self.n_params))
         self.C.setParams(params)
 
 class CFixedCF_test(unittest.TestCase,Acovar_test):
     """test class for CFixedCF"""
     def setUp(self):
-        SP.random.seed(1)
+        NP.random.seed(1)
         self.n=4
-        self.C = dlimix_legacy.CFixedCF(SP.ones((self.n,self.n)))
+        self.C = dlimix_legacy.CFixedCF(NP.ones((self.n,self.n)))
         self.name = 'CFixedCF'
         self.n_params=self.C.getNumberParams()
         K = self.C.K()
-        params=SP.exp(SP.randn(self.n_params))
+        params=NP.exp(NP.random.randn(self.n_params))
         self.C.setParams(params)
 
 class CRank1diagCF_test(unittest.TestCase,Acovar_test):
     """test class for CRank1diagCF"""
     def setUp(self):
-        SP.random.seed(1)
+        NP.random.seed(1)
         self.n=4
         self.C = dlimix_legacy.CRank1diagCF(self.n)
         self.name = 'CRank1diagCF'
         self.n_params=self.C.getNumberParams()
-        params=SP.exp(SP.randn(self.n_params))
+        params=NP.exp(NP.random.randn(self.n_params))
         self.C.setParams(params)
 
 class CPolyCF_test(unittest.TestCase,Acovar_test):
     """test class for CRank1diagCF"""
     def setUp(self):
-        SP.random.seed(1)
+        NP.random.seed(1)
         self.n=4
         self.d=2
         self.K=3
         self.C = dlimix_legacy.CPolyCF(self.n,self.d,self.K)
         self.name = 'CPolyCF'
         self.n_params=self.C.getNumberParams()
-        params=SP.randn(self.n_params)
+        params=NP.random.randn(self.n_params)
         self.C.setParams(params)
 
 class CFixedDiagonalCF_test(unittest.TestCase,Acovar_test):
     """test class for CFixedDiagonalCF"""
     def setUp(self):
-        SP.random.seed(1)
+        NP.random.seed(1)
         self.n=4
         self.rank=1
-        d = SP.rand(self.n)+1
+        d = NP.random.rand(self.n)+1
         C0 = dlimix_legacy.CSumCF()
         C0.addCovariance(dlimix_legacy.CLowRankCF(self.n,self.rank))
         C0.addCovariance(dlimix_legacy.CDiagonalCF(self.n))
         self.C = dlimix_legacy.CFixedDiagonalCF(C0,d)
         self.name = 'CFixedDiagonalCF'
         self.n_params=self.C.getNumberParams()
-        params=SP.randn(self.n_params)
+        params=NP.random.randn(self.n_params)
         self.C.setParams(params)
         """
         h = 1e-4
-        e = SP.zeros(self.n_params)
+        e = NP.zeros(self.n_params)
         for i in range(self.n_params):
             print i
             e[i] = 1

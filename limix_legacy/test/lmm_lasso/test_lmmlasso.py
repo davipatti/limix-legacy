@@ -1,7 +1,6 @@
 """Variance Decomposition testing code"""
 import unittest
-import scipy as SP
-import numpy as np
+import numpy as NP
 import scipy.stats
 import pdb
 import os
@@ -16,34 +15,34 @@ class Lmmlasso_test(unittest.TestCase):
     """
 
     def genGeno(self):
-        X  = (SP.rand(self.N,self.S)<0.2)*1.
+        X  = (NP.random.rand(self.N,self.S)<0.2)*1.
         X -= X.mean(0)
         X /= X.std(0)
         self.D['X'] = X
 
     def genKernel(self):
-        X  = (SP.rand(self.N,10)<0.2)*1.
-        K  = SP.dot(X,X.T)
-        K /= SP.diag(K).mean()
-        K += 1e-3*SP.eye(self.N)
+        X  = (NP.random.rand(self.N,10)<0.2)*1.
+        K  = NP.dot(X,X.T)
+        K /= NP.diag(K).mean()
+        K += 1e-3*NP.eye(self.N)
         self.D['K'] = K
 
 
     def genPheno(self):
 
-        idx_causal = SP.random.randint(0,self.S,10)
+        idx_causal = NP.random.randint(0,self.S,10)
         sigma_g = 0.25
         sigma_e = 0.25
         sigma_f = 0.50
 
-        u = SP.random.multivariate_normal(SP.zeros(self.N),self.D['K'])
-        u*= SP.sqrt(sigma_g)/u.std()
+        u = NP.random.multivariate_normal(NP.zeros(self.N),self.D['K'])
+        u*= NP.sqrt(sigma_g)/u.std()
 
-        e = SP.random.randn(self.N)
-        e*= SP.sqrt(sigma_e)/e.std()
+        e = NP.random.randn(self.N)
+        e*= NP.sqrt(sigma_e)/e.std()
 
-        f = SP.sum(self.D['X'][:,idx_causal],axis=1)
-        f*= SP.sqrt(sigma_f)/f.std()
+        f = NP.sum(self.D['X'][:,idx_causal],axis=1)
+        f*= NP.sqrt(sigma_f)/f.std()
 
         y = u + e + f
         self.D['y']= y
@@ -60,7 +59,7 @@ class Lmmlasso_test(unittest.TestCase):
         if (not os.path.exists(self.dataset)) or 'recalc' in sys.argv:
             if not os.path.exists(self.dataset):
                 os.makedirs(self.dataset)
-            SP.random.seed(1)
+            NP.random.seed(1)
             self.N = 500
             self.S = 100
             self.D = {}
@@ -92,11 +91,11 @@ class Lmmlasso_test(unittest.TestCase):
         params_true = self.D['params_true']
         yhat_true   = self.D['yhat']
 
-        RV = ((SP.absolute(params)-SP.absolute(params_true))**2).max()
-        np.testing.assert_almost_equal(RV, 0., decimal=4)
+        RV = ((NP.absolute(params)-NP.absolute(params_true))**2).max()
+        NP.testing.assert_almost_equal(RV, 0., decimal=4)
 
-        RV = ((SP.absolute(yhat)-SP.absolute(yhat_true))**2).max()
-        np.testing.assert_almost_equal(RV, 0., decimal=2)
+        RV = ((NP.absolute(yhat)-NP.absolute(yhat_true))**2).max()
+        NP.testing.assert_almost_equal(RV, 0., decimal=2)
 
 
 

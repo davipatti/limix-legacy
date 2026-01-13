@@ -19,7 +19,7 @@ import limix_legacy.deprecated.modules.qtl as qtl
 import limix_legacy.deprecated.stats.fdr as fdr
 from limix_legacy.deprecated.stats.pca import *
 import limix_legacy.deprecated as dlimix_legacy
-import scipy as sp
+import numpy as np
 import scipy.linalg as la
 import pdb
 import scipy.linalg as linalg
@@ -55,27 +55,27 @@ class varDecompSet:
         covar  = limix_legacy.CSumCF()
         covar_params = []
         for K in self.Ks:
-            covar.addCovariance(limix_legacy.CFixedCF(K+jitter*sp.eye(self.N)))
-            covar_params.append(sp.ones(1)/sp.sqrt(self.n_terms))
+            covar.addCovariance(limix_legacy.CFixedCF(K+jitter*np.eye(self.N)))
+            covar_params.append(np.ones(1)/np.sqrt(self.n_terms))
         if self.noise is 'correlated':
-            _cov1 = limix_legacy.CFixedCF(sp.eye(int(self.Y.shape[0]/2)))
-            self.cov_noise = limix_legacy.CFixedDiagonalCF(limix_legacy.CFreeFormCF(2),sp.ones(2))
-            self.cov_noise.setParamMask(sp.array([0,1,0]))
+            _cov1 = limix_legacy.CFixedCF(np.eye(int(self.Y.shape[0]/2)))
+            self.cov_noise = limix_legacy.CFixedDiagonalCF(limix_legacy.CFreeFormCF(2),np.ones(2))
+            self.cov_noise.setParamMask(np.array([0,1,0]))
             self.Knoise = limix_legacy.CKroneckerCF(_cov1,self.cov_noise)
             covar.addCovariance(self.Knoise)
-            covar_params.append(sp.ones(1)/sp.sqrt(self.n_terms))
-            covar_params.append(sp.array([1.,1e-3,1.]))
+            covar_params.append(np.ones(1)/np.sqrt(self.n_terms))
+            covar_params.append(np.array([1.,1e-3,1.]))
         elif self.noise is not 'off':
-            covar.addCovariance(limix_legacy.CFixedCF(sp.eye(self.N)))
-            covar_params.append(sp.ones(1)/sp.sqrt(self.n_terms))
+            covar.addCovariance(limix_legacy.CFixedCF(np.eye(self.N)))
+            covar_params.append(np.ones(1)/np.sqrt(self.n_terms))
 
         hyperparams = limix_legacy.CGPHyperParams()
-        covar_params = sp.concatenate(covar_params)
+        covar_params = np.concatenate(covar_params)
         hyperparams['covar'] = covar_params
         constrainU = limix_legacy.CGPHyperParams()
         constrainL = limix_legacy.CGPHyperParams()
-        constrainU['covar'] = +5*sp.ones_like(covar_params);
-        constrainL['covar'] = -5*sp.ones_like(covar_params);
+        constrainU['covar'] = +5*np.ones_like(covar_params);
+        constrainL['covar'] = -5*np.ones_like(covar_params);
 
         self.gp=limix_legacy.CGPbase(covar,limix_legacy.CLikNormalNULL())
         self.gp.setY(self.Y)

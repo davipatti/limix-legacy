@@ -1,5 +1,6 @@
 import numpy as np
 import scipy as sp
+import numpy as np
 import scipy.stats
 
 def _calculate_number_alleles(G):

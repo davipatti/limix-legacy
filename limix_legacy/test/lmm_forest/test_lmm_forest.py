@@ -4,7 +4,7 @@ Created on Sep 19, 2013
 @author: johannes
 '''
 # create some test cases
-import scipy as SP
+import numpy as NP
 from limix_legacy.ensemble import lmm_forest_utils as utils
 import h5py
 from limix_legacy.ensemble.lmm_forest import Forest as MF
@@ -19,7 +19,7 @@ class TestMixedForest(unittest.TestCase):
         self.data = h5py.File(os.path.join(self.dir_name,
                                            'test_data/lmm_forest_toy_data.h5'),
                               'r')
-        SP.random.seed(1)
+        NP.random.seed(1)
         self.x, self.y = utils.lin_data_cont_predictors(n=n,m=m)
         self.n, self.m = self.x.shape
         [self.train, self.test] = utils.crossValidationScheme(2,self.n)
@@ -32,11 +32,11 @@ class TestMixedForest(unittest.TestCase):
         X = self.data['X'].value
         # This is a non-random cross validation
         (training, test) = utils.crossValidationScheme(2, y_conf.size)
-        lm_forest = MF(kernel=kernel[SP.ix_(training, training)],
+        lm_forest = MF(kernel=kernel[NP.ix_(training, training)],
                        sampsize=.5, verbose=0, n_estimators=100)
         lm_forest.fit(X[training], y_conf[training])
         response_tot = lm_forest.predict(X[test],
-                                         kernel[SP.ix_(test, training)])
+                                         kernel[NP.ix_(test, training)])
         random_forest = MF(kernel='iid')
         random_forest.fit(X[training], y_conf[training])
         response_iid = random_forest.predict(X[test])
@@ -45,25 +45,25 @@ class TestMixedForest(unittest.TestCase):
         feature_scores_rf = random_forest.log_importance
         # All consistency checks
         err = (feature_scores_lmf-self.data['feature_scores_lmf'].value).sum()
-        self.assertTrue(SP.absolute(err) < 10)
+        self.assertTrue(NP.absolute(err) < 10)
         err = (feature_scores_rf-self.data['feature_scores_rf'].value).sum()
-        self.assertTrue(SP.absolute(err) < 10)
-        err = SP.absolute(self.data['response_tot'] - response_tot).sum()
-        self.assertTrue(SP.absolute(err) < 2)
-        err = SP.absolute(self.data['response_fixed'] - response_fixed).sum()
-        self.assertTrue(SP.absolute(err) < 4)
-        err = SP.absolute(self.data['response_iid'] - response_iid).sum()
-        self.assertTrue(SP.absolute(err) < 8)
+        self.assertTrue(NP.absolute(err) < 10)
+        err = NP.absolute(self.data['response_tot'] - response_tot).sum()
+        self.assertTrue(NP.absolute(err) < 2)
+        err = NP.absolute(self.data['response_fixed'] - response_fixed).sum()
+        self.assertTrue(NP.absolute(err) < 4)
+        err = NP.absolute(self.data['response_iid'] - response_iid).sum()
+        self.assertTrue(NP.absolute(err) < 8)
 
     def test_delta_updating(self):
         n_sample = 100
         # A 20 x 2 random integer matrix
-        X = SP.empty((n_sample, 2))
-        X[:, 0] = SP.arange(0, 1, 1.0/n_sample)
-        X[:, 1] = SP.random.rand(n_sample)
+        X = NP.empty((n_sample, 2))
+        X[:, 0] = NP.arange(0, 1, 1.0/n_sample)
+        X[:, 1] = NP.random.rand(n_sample)
         sd_noise = .5
         sd_conf = .5
-        noise = SP.random.randn(n_sample, 1)*sd_noise
+        noise = NP.random.randn(n_sample, 1)*sd_noise
 
         # print 'true delta equals', (sd_noise**2)/(sd_conf**2)
         # Here, the observed y is just a linear function of the first column
@@ -72,20 +72,20 @@ class TestMixedForest(unittest.TestCase):
         y_fn = y_fixed + noise
 
         # Divide into training and test sample using 2/3 of data for training
-        training_sample = SP.zeros(n_sample, dtype='bool')
+        training_sample = NP.zeros(n_sample, dtype='bool')
         training_sample[
-            SP.random.permutation(n_sample)[:SP.int_(.66*n_sample)]] = True
+            NP.random.permutation(n_sample)[:NP.int_(.66*n_sample)]] = True
         test_sample = ~training_sample
 
         kernel = utils.getQuadraticKernel(X[:, 0], d=0.0025) +\
-            1e-3*SP.eye(n_sample)
+            1e-3*NP.eye(n_sample)
         # The confounded version of y_lin is computed as
-        y_conf = sd_conf*SP.random.multivariate_normal(SP.zeros(n_sample),
+        y_conf = sd_conf*NP.random.multivariate_normal(NP.zeros(n_sample),
                                                        kernel, 1).reshape(-1, 1)
         y_tot = y_fn + y_conf
         # Selects rows and columns
-        kernel_train = kernel[SP.ix_(training_sample, training_sample)]
-        kernel_test = kernel[SP.ix_(test_sample, training_sample)]
+        kernel_train = kernel[NP.ix_(training_sample, training_sample)]
+        kernel_test = kernel[NP.ix_(test_sample, training_sample)]
         lm_forest = MF(kernel=kernel_train, update_delta=False, max_depth=1,
                        verbose=0)
         # Returns prediction for random effect
@@ -100,7 +100,7 @@ class TestMixedForest(unittest.TestCase):
         response_rf = random_forest.predict(X[test_sample], k=kernel_test)
 
     def test_kernel_builing(self):
-        X = (SP.random.rand(5, 10) > .5)*1.0
+        X = (NP.random.rand(5, 10) > .5)*1.0
         kernel = utils.estimateKernel(X, scale=False)
         small_kernel = utils.estimateKernel(X[:, 0:5], scale=False)
         small_kernel_test = utils.update_Kernel(kernel, X[:, 5:], scale=False)
@@ -112,11 +112,11 @@ class TestMixedForest(unittest.TestCase):
         X = self.x.copy()
         X -= X.mean(axis=0)
         X /= X.std(axis=0)
-        kernel = SP.dot(X, X.T)
-        train = SP.where(self.train)[0]
-        test = SP.where(~self.train)[0]
+        kernel = NP.dot(X, X.T)
+        train = NP.where(self.train)[0]
+        test = NP.where(~self.train)[0]
         model = MF(fit_optimal_depth=True, max_depth=3,
-                   kernel=kernel[SP.ix_(train, train)])
+                   kernel=kernel[NP.ix_(train, train)])
         model.fit(self.x[self.train], self.y[self.train],
                   fit_optimal_depth=True)
         prediction_1 = model.predict(X[test], k=kernel[test, train],
@@ -131,7 +131,7 @@ class TestMixedForest(unittest.TestCase):
     @unittest.skip("someone has to fix it")
     def test_forest_stump_recycling(self):
         self.setUp(m=5)
-        SP.random.seed(42)
+        NP.random.seed(42)
         model = MF(fit_optimal_depth=True, kernel='iid',
                    build_to_opt_depth=True)
         model.fit(self.x[self.train], self.y[self.train])
@@ -142,14 +142,14 @@ class TestMixedForest(unittest.TestCase):
 
     @unittest.skip("someone has to fix it")
     def test_normalization_kernel(self):
-        #SP.random.seed(42)
+        #NP.random.seed(42)
         n = 50
         m = 100
-        X = (SP.random.rand(n, m) > .5)*1.
-        X_test = (SP.random.rand(10, m) > .5)*1.
+        X = (NP.random.rand(n, m) > .5)*1.
+        X_test = (NP.random.rand(10, m) > .5)*1.
         K = utils.estimateKernel(X)
-        y = SP.random.rand(n, 1)
-        SP.random.seed(1)
+        y = NP.random.rand(n, 1)
+        NP.random.seed(1)
         mf = MF(kernel=K)
         mf.fit(X, y)
         results_1 = mf.predict(X_test)
@@ -159,7 +159,7 @@ class TestMixedForest(unittest.TestCase):
         X_test -= X_test.mean(axis=0)
         X_test /= X_test.std(axis=0)
 
-        SP.random.seed(1)
+        NP.random.seed(1)
         mf = MF(kernel=K)
         mf.fit(X, y)
         results_2 = mf.predict(X_test)
@@ -169,30 +169,30 @@ class TestMixedForest(unittest.TestCase):
         return -x + x**3
 
     def complete_sample(self, x, mean=0, var=.3**2):
-        return self.polynom(x) + SP.random.randn(x.size) * SP.sqrt(var) + mean
+        return self.polynom(x) + NP.random.randn(x.size) * NP.sqrt(var) + mean
 
     def test_covariate_shift(self):
         n_sample = 100
         # Biased training
         var_bias = .5**2
         mean_bias = .7
-        x_train = SP.random.randn(n_sample)*SP.sqrt(var_bias) + mean_bias
+        x_train = NP.random.randn(n_sample)*NP.sqrt(var_bias) + mean_bias
         y_train = self.complete_sample(x_train)
 
         # Unbiased test set
         var = .3**2
         mean = 0
 
-        x_test = SP.random.randn(n_sample)*SP.sqrt(var) + mean
-        x_complete = SP.hstack((x_train, x_test))
+        x_test = NP.random.randn(n_sample)*NP.sqrt(var) + mean
+        x_complete = NP.hstack((x_train, x_test))
 
         kernel = utils.getQuadraticKernel(x_complete, d=1) +\
-            10 * SP.dot(x_complete.reshape(-1, 1), x_complete.reshape(1, -1))
+            10 * NP.dot(x_complete.reshape(-1, 1), x_complete.reshape(1, -1))
         kernel = utils.scale_K(kernel)
-        kernel_train = kernel[SP.ix_(SP.arange(x_train.size),
-                                     SP.arange(x_train.size))]
-        kernel_test = kernel[SP.ix_(SP.arange(x_train.size, x_complete.size),
-                             SP.arange(x_train.size))]
+        kernel_train = kernel[NP.ix_(NP.arange(x_train.size),
+                                     NP.arange(x_train.size))]
+        kernel_test = kernel[NP.ix_(NP.arange(x_train.size, x_complete.size),
+                             NP.arange(x_train.size))]
 
         mf = MF(n_estimators=100, kernel=kernel_train, min_depth=0,
                 subsampling=False)

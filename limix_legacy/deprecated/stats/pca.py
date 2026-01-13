@@ -15,11 +15,11 @@
 """
 PCA related utility function
 """
-import scipy as sp
+import numpy as np
 import numpy as np 
 import pdb
 import numpy.linalg as linalg
-import scipy as sp
+import numpy as np
 
 def PCA(Y, components):
 	"""
@@ -66,8 +66,8 @@ def PC_varExplained(Y,standardized=True):
     if standardized:
         Y-=Y.mean(0)
         Y/=Y.std(0)
-    covY = sp.cov(Y)
-    S,U = linalg.eigh(covY+1e-6*sp.eye(covY.shape[0]))
+    covY = np.cov(Y)
+    S,U = linalg.eigh(covY+1e-6*np.eye(covY.shape[0]))
     S = S[::-1]
     rv = np.array([S[0:i].sum() for i in range(1,S.shape[0])])
     rv/= S.sum()

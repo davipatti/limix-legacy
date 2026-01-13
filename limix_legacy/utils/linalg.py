@@ -1,4 +1,4 @@
-import scipy as sp
+import numpy as np
 
 def vei_CoR_veX(X, C=None, R=None):
     """
@@ -11,8 +11,8 @@ def vei_CoR_veX(X, C=None, R=None):
         where ve(X) reshapes X as a NPxS matrix.
     """
     _X = X.transpose((0,2,1))
-    if R is not None:   RV = sp.tensordot(R, _X, (1,0))
+    if R is not None:   RV = np.tensordot(R, _X, (1,0))
     else:               RV = _X
-    if C is not None:   RV = sp.dot(RV, C.T)
+    if C is not None:   RV = np.dot(RV, C.T)
     return RV.transpose((0,2,1))
 

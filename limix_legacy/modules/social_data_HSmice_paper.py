@@ -100,18 +100,18 @@ class SocialData():
             self.trait=self.measures[col]
             self.pheno = self.all_pheno[:,col]
             covs2use = self.all_covs2use[col].split(',')
-            Ic = sp.zeros(self.measures.shape[0],dtype=bool)
+            Ic = np.zeros(self.measures.shape[0],dtype=bool)
             for cov in covs2use:
-                Ic = sp.logical_or(Ic,self.measures==cov)
+                Ic = np.logical_or(Ic,self.measures==cov)
             self.covs = self.all_covs[:,Ic]
 
         elif self.task == 'HSmice_hip_REVISIONS':
             self.trait=self.measures[col]
             self.pheno = self.all_pheno[:,col]
             covs2use = ['GENDER','group_size']
-            Ic = sp.zeros(self.measures.shape[0],dtype=bool)
+            Ic = np.zeros(self.measures.shape[0],dtype=bool)
             for cov in covs2use:
-                Ic = sp.logical_or(Ic,self.measures==cov)
+                Ic = np.logical_or(Ic,self.measures==cov)
             self.covs = self.all_covs[:,Ic]
 
         elif 'HSmice_simulations' in self.task:

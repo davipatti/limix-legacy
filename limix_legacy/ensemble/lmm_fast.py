@@ -1,4 +1,3 @@
-import scipy as SP
 import numpy as NP
 import scipy.linalg as LA
 import scipy.optimize as OPT
@@ -10,19 +9,19 @@ import pdb
 L2pi = 1.8378770664093453
 def nLLeval(ldelta,UY,UX,S,MLparams=False):
     """evaluate the negative LL of a LMM with kernel USU.T"""
-    delta=SP.exp(ldelta);
+    delta=NP.exp(ldelta);
     n,d=UX.shape;
     Sdi=S+delta;
-    ldet=SP.sum(NP.log(Sdi));
+    ldet=NP.sum(NP.log(Sdi));
     Sdi=1.0/Sdi;
-    XSdi=UX.T*SP.tile(Sdi,(d,1));
-    XSX=SP.dot(XSdi,UX);
-    XSY=SP.dot(XSdi,UY);
+    XSdi=UX.T*NP.tile(Sdi,(d,1));
+    XSX=NP.dot(XSdi,UX);
+    XSY=NP.dot(XSdi,UY);
     beta=LA.lstsq(XSX,XSY);
-    res=UY-SP.dot(UX,beta[0]);
+    res=UY-NP.dot(UX,beta[0]);
     res*=res;
     res*=Sdi;
-    sigg2=SP.sum(res)/n;
+    sigg2=NP.sum(res)/n;
     nLL=0.5*(n*L2pi+ldet+n+n*NP.log(sigg2));
     if MLparams:
         return nLL, beta[0], sigg2;
@@ -32,16 +31,16 @@ def nLLeval(ldelta,UY,UX,S,MLparams=False):
 def optdelta(UY,UX,S,ldeltanull=None,numintervals=100,ldeltamin=-10.0,ldeltamax=10.0):
     """find the optimal delta"""
     if ldeltanull==None:
-        nllgrid=SP.ones(numintervals+1)*SP.inf;
-        ldeltagrid=SP.arange(numintervals+1)/(numintervals*1.0)*(ldeltamax-ldeltamin)+ldeltamin;
-        nllmin=SP.inf;
-        for i in SP.arange(numintervals+1):
+        nllgrid=NP.ones(numintervals+1)*NP.inf;
+        ldeltagrid=NP.arange(numintervals+1)/(numintervals*1.0)*(ldeltamax-ldeltamin)+ldeltamin;
+        nllmin=NP.inf;
+        for i in NP.arange(numintervals+1):
             nllgrid[i]=nLLeval(ldeltagrid[i],UY,UX,S);
             if nllgrid[i]<nllmin:
                 nllmin=nllgrid[i];
                 ldeltaopt_glob=ldeltagrid[i];
         foundMin=False
-        for i in SP.arange(numintervals-1)+1:
+        for i in NP.arange(numintervals-1)+1:
             continue
             ee = 1E-8
             #carry out brent optimization within the interval
@@ -62,27 +61,27 @@ def estimateBeta(X,Y,K,C=None,addBiasTerm=False,numintervals0=100,ldeltamin0=-5.
     n,s=X.shape;
     n_pheno=Y.shape[1];
     S,U=LA.eigh(K);
-    UY=SP.dot(U.T,Y);
-    UX=SP.dot(U.T,X);
+    UY=NP.dot(U.T,Y);
+    UX=NP.dot(U.T,X);
     if (C==None):
-        Ucovariate=SP.dot(U.T,SP.ones([n,1]));
+        Ucovariate=NP.dot(U.T,NP.ones([n,1]));
     else:
         if (addBiasTerm):
-            C_=SP.concatenate((C,SP.ones([n,1])),axis=1)
-            Ucovariate=SP.dot(U.T,C_);
+            C_=NP.concatenate((C,NP.ones([n,1])),axis=1)
+            Ucovariate=NP.dot(U.T,C_);
         else:
-            Ucovariate=SP.dot(U.T,C);
+            Ucovariate=NP.dot(U.T,C);
     n_covar=Ucovariate.shape[1];
-    beta = SP.empty((n_pheno,s,n_covar+1));
-    LL=SP.ones((n_pheno,s))*(-SP.inf);
-    ldelta=SP.empty((n_pheno,s));
-    sigg2=SP.empty((n_pheno,s));
-    pval=SP.ones((n_pheno,s))*(-SP.inf);
-    for phen in SP.arange(n_pheno):
+    beta = NP.empty((n_pheno,s,n_covar+1));
+    LL=NP.ones((n_pheno,s))*(-NP.inf);
+    ldelta=NP.empty((n_pheno,s));
+    sigg2=NP.empty((n_pheno,s));
+    pval=NP.ones((n_pheno,s))*(-NP.inf);
+    for phen in NP.arange(n_pheno):
         UY_=UY[:,phen];
         ldelta[phen]=optdelta(UY_,Ucovariate,S,ldeltanull=None,numintervals=numintervals0,ldeltamin=ldeltamin0,ldeltamax=ldeltamax0);
-        for snp in SP.arange(s):
-            UX_=SP.hstack((UX[:,snp:snp+1],Ucovariate));
+        for snp in NP.arange(s):
+            UX_=NP.hstack((UX[:,snp:snp+1],Ucovariate));
             nLL_, beta_, sigg2_=nLLeval(ldelta[phen,snp],UY_,UX_,S,MLparams=True);
             beta[phen,snp,:]=beta_;
             sigg2[phen,snp]=sigg2_;
@@ -96,27 +95,27 @@ def train_associations(X,Y,K,C=None,addBiasTerm=False,numintervalsAlt=0,ldeltami
     n,s=X.shape;
     n_pheno=Y.shape[1];
     S,U=LA.eigh(K);
-    UY=SP.dot(U.T,Y);
-    UX=SP.dot(U.T,X);
+    UY=NP.dot(U.T,Y);
+    UX=NP.dot(U.T,X);
     if (C==None):
-        Ucovariate=SP.dot(U.T,SP.ones([n,1]));
+        Ucovariate=NP.dot(U.T,NP.ones([n,1]));
     else:
         if (addBiasTerm):
-            C_=SP.concatenate((C,SP.ones([n,1])),axis=1)
-            Ucovariate=SP.dot(U.T,C_);
+            C_=NP.concatenate((C,NP.ones([n,1])),axis=1)
+            Ucovariate=NP.dot(U.T,C_);
         else:
-            Ucovariate=SP.dot(U.T,C);
+            Ucovariate=NP.dot(U.T,C);
     n_covar=Ucovariate.shape[1];
-    beta = SP.empty((n_pheno,s,n_covar+1));
-    beta0 = SP.empty((n_pheno,n_covar));
-    LL=SP.ones((n_pheno,s))*(-SP.inf);
-    LL0=SP.ones((n_pheno))*(-SP.inf);
-    ldelta=SP.empty((n_pheno,s));
-    ldelta0=SP.empty(n_pheno);
-    sigg2=SP.empty((n_pheno,s));
-    sigg20=SP.empty((n_pheno));
-    pval=SP.ones((n_pheno,s))*(-SP.inf);
-    for phen in SP.arange(n_pheno):
+    beta = NP.empty((n_pheno,s,n_covar+1));
+    beta0 = NP.empty((n_pheno,n_covar));
+    LL=NP.ones((n_pheno,s))*(-NP.inf);
+    LL0=NP.ones((n_pheno))*(-NP.inf);
+    ldelta=NP.empty((n_pheno,s));
+    ldelta0=NP.empty(n_pheno);
+    sigg2=NP.empty((n_pheno,s));
+    sigg20=NP.empty((n_pheno));
+    pval=NP.ones((n_pheno,s))*(-NP.inf);
+    for phen in NP.arange(n_pheno):
         UY_=UY[:,phen];
         ldelta0[phen]=optdelta(UY_,Ucovariate,S,ldeltanull=None,numintervals=numintervals0,ldeltamin=ldeltamin0,ldeltamax=ldeltamax0);
         print(('log(delta) was fitted to', ldelta0))
@@ -126,8 +125,8 @@ def train_associations(X,Y,K,C=None,addBiasTerm=False,numintervalsAlt=0,ldeltami
         beta0[phen,:]=beta0_;
         sigg20[phen]=sigg20_;
         LL0[phen]=-nLL0_;
-        for snp in SP.arange(s):
-            UX_=SP.hstack((UX[:,snp:snp+1],Ucovariate));
+        for snp in NP.arange(s):
+            UX_=NP.hstack((UX[:,snp:snp+1],Ucovariate));
             if numintervalsAlt==0: #EMMA-X trick #fast version, no refitting of detla
                 ldelta[phen,snp]=ldelta0[phen];                
             else: #fit delta
@@ -137,7 +136,7 @@ def train_associations(X,Y,K,C=None,addBiasTerm=False,numintervalsAlt=0,ldeltami
             sigg2[phen,snp]=sigg2_;
             LL[phen,snp]=-nLL_;
     #reshaping of LL0
-    LL0 = LL0[:,SP.newaxis]
+    LL0 = LL0[:,NP.newaxis]
     lods = LL-LL0
     if calc_pval:
         arg2 = st.chi2.sf(2*(lods),1)
@@ -154,43 +153,43 @@ def train_interact(X,Y,K,interactants=None,covariates=None,addBiasTerm=True,numi
     n,s=X.shape;
     n_pheno=Y.shape[1];
     S,U=LA.eigh(K);
-    UY=SP.dot(U.T,Y);
-    UX=SP.dot(U.T,X);
+    UY=NP.dot(U.T,Y);
+    UX=NP.dot(U.T,X);
     if (covariates==None):
-        covariates = SP.ones([n,0])
+        covariates = NP.ones([n,0])
     if (addBiasTerm):
-        covariates=SP.concatenate((covariates,SP.ones([n,1])),axis=1)
+        covariates=NP.concatenate((covariates,NP.ones([n,1])),axis=1)
     #Ucovariates
-    Ucovariate=SP.dot(U.T,covariates);
+    Ucovariate=NP.dot(U.T,covariates);
 
     #Uinteractants
-    Uinteractants = SP.dot(U.T,interactants)
+    Uinteractants = NP.dot(U.T,interactants)
     n_covar=covariates.shape[1]
     n_inter=interactants.shape[1]
     #weights
     #foreground: covaraits + SNP + interactions 
-    beta = SP.empty((n_pheno,s,1+n_covar+2*n_inter));
+    beta = NP.empty((n_pheno,s,1+n_covar+2*n_inter));
     #background: covariates + direct SNP effect
-    beta0 = SP.empty((n_pheno,s,1+n_covar+n_inter));
-    LL=SP.ones((n_pheno,s))*(-SP.inf);
-    LL0=SP.ones((n_pheno,s))*(-SP.inf);
-    ldelta=SP.empty([n_pheno,s]);
-    ldelta0=SP.empty([n_pheno,s]);
-    sigg2=SP.empty((n_pheno,s));
-    sigg20=SP.empty((n_pheno,s));
-    pval=SP.ones((n_pheno,s))*(-SP.inf);
-    for snp in SP.arange(s):
+    beta0 = NP.empty((n_pheno,s,1+n_covar+n_inter));
+    LL=NP.ones((n_pheno,s))*(-NP.inf);
+    LL0=NP.ones((n_pheno,s))*(-NP.inf);
+    ldelta=NP.empty([n_pheno,s]);
+    ldelta0=NP.empty([n_pheno,s]);
+    sigg2=NP.empty((n_pheno,s));
+    sigg20=NP.empty((n_pheno,s));
+    pval=NP.ones((n_pheno,s))*(-NP.inf);
+    for snp in NP.arange(s):
         #loop through all SNPs
         #1. snp-specific backgroud model SNP effect + covaraites + interactants
-        Ucovariates_=SP.hstack((UX[:,snp:snp+1],Uinteractants,Ucovariate))
+        Ucovariates_=NP.hstack((UX[:,snp:snp+1],Uinteractants,Ucovariate))
         #2. snp-specific foreground model
         #interactions
         Xi_ = X[:,snp:snp+1]*interactants
         #transform
-        UXi_ = SP.dot(U.T,Xi_)
+        UXi_ = NP.dot(U.T,Xi_)
         #stack: interactions, interactants (main) SNPs (main) covariates (if any)
-        UX_  = SP.hstack((UXi_,Ucovariates_))
-        for phen in SP.arange(n_pheno):
+        UX_  = NP.hstack((UXi_,Ucovariates_))
+        for phen in NP.arange(n_pheno):
             print(phen)
             #loop through phenoptypes
             #get transformed Y
@@ -224,33 +223,33 @@ def train_interactX(X,Y,K,interactants=None,covariates=None,addBiasTerm=True,num
     n,s=X.shape;
     n_pheno=Y.shape[1];
     S,U=LA.eigh(K);
-    UY=SP.dot(U.T,Y);
-    UX=SP.dot(U.T,X);
+    UY=NP.dot(U.T,Y);
+    UX=NP.dot(U.T,X);
     if (covariates==None):
-        covariates = SP.ones([n,0])
+        covariates = NP.ones([n,0])
     if (addBiasTerm):
-        covariates=SP.concatenate((covariates,SP.ones([n,1])),axis=1)
+        covariates=NP.concatenate((covariates,NP.ones([n,1])),axis=1)
     #Ucovariates
-    Ucovariate=SP.dot(U.T,covariates);
+    Ucovariate=NP.dot(U.T,covariates);
 
     #Uinteractants
-    Uinteractants = SP.dot(U.T,interactants)
+    Uinteractants = NP.dot(U.T,interactants)
     n_covar=covariates.shape[1]
     n_inter=interactants.shape[1]
     #weights
     #foreground: covaraits + SNP + interactions 
-    beta = SP.empty((n_pheno,s,1+n_covar+2*n_inter));
+    beta = NP.empty((n_pheno,s,1+n_covar+2*n_inter));
     #background: covariates + direct SNP effect
-    beta0 = SP.empty((n_pheno,s,1+n_covar+n_inter));
-    LL=SP.ones((n_pheno,s))*(-SP.inf);
-    LL0=SP.ones((n_pheno,s))*(-SP.inf);
-    ldelta=SP.empty([n_pheno,s]);
-    ldelta0=SP.empty([n_pheno,s]);
-    sigg2=SP.empty((n_pheno,s));
-    sigg20=SP.empty((n_pheno,s));
-    pval=SP.ones((n_pheno,s))*(-SP.inf);
+    beta0 = NP.empty((n_pheno,s,1+n_covar+n_inter));
+    LL=NP.ones((n_pheno,s))*(-NP.inf);
+    LL0=NP.ones((n_pheno,s))*(-NP.inf);
+    ldelta=NP.empty([n_pheno,s]);
+    ldelta0=NP.empty([n_pheno,s]);
+    sigg2=NP.empty((n_pheno,s));
+    sigg20=NP.empty((n_pheno,s));
+    pval=NP.ones((n_pheno,s))*(-NP.inf);
     #0. fit 0 model on phenotypes and covariates alone
-    for phen in SP.arange(n_pheno):
+    for phen in NP.arange(n_pheno):
         #fit if phen is visited the first time
         #loop through phenoptypes
         #get transformed Y
@@ -259,19 +258,19 @@ def train_interactX(X,Y,K,interactants=None,covariates=None,addBiasTerm=True,num
         ldelta0[phen,:]=optdelta(UY_,Ucovariate,S,ldeltanull=None,numintervals=numintervals0,ldeltamin=ldeltamin0,ldeltamax=ldeltamax0);
             
     #1. loop through all snps
-    for snp in SP.arange(s):
+    for snp in NP.arange(s):
         #loop through all SNPs
         #1. snp-specific backgroud model SNP effect + covaraites + interactants
-        Ucovariates_=SP.hstack((UX[:,snp:snp+1],Uinteractants,Ucovariate))
+        Ucovariates_=NP.hstack((UX[:,snp:snp+1],Uinteractants,Ucovariate))
         #2. snp-specific foreground model
         #interactions
         Xi_ = X[:,snp:snp+1]*interactants
         #transform
-        UXi_ = SP.dot(U.T,Xi_)
+        UXi_ = NP.dot(U.T,Xi_)
         #stack: interactions, interactants (main) SNPs (main) covariates (if any)
-        UX_  = SP.hstack((UXi_,Ucovariates_))
+        UX_  = NP.hstack((UXi_,Ucovariates_))
 
-        for phen in SP.arange(n_pheno):
+        for phen in NP.arange(n_pheno):
             UY_=UY[:,phen]        
             #loop through all phenotypes
             #emmaX trick
@@ -299,26 +298,26 @@ def run_interact(Y, intA, intB, covs, K):
     Nb = intB.shape[1] # number of interaction terms 2
     
     S,U=LA.eigh(K);
-    UY=SP.dot(U.T,Y);
-    UintA=SP.dot(U.T,intA);
-    UintB=SP.dot(U.T,intB);
-    Ucovs=SP.dot(U.T,covs);
+    UY=NP.dot(U.T,Y);
+    UintA=NP.dot(U.T,intA);
+    UintB=NP.dot(U.T,intB);
+    Ucovs=NP.dot(U.T,covs);
     # for each snp/gene/factor combination, run a lod
     # snps need to be diced bc of missing values - iterate over them, else in arrays
-    lods = SP.zeros([Na, Nb, Ny])
+    lods = NP.zeros([Na, Nb, Ny])
 
     #add mean column:
-    if covs is None: covs = SP.ones([Ny,1])
+    if covs is None: covs = NP.ones([Ny,1])
 
     # for each pair of interacting terms
     for a in range(Na):
         for b in range(Nb):
             # calculate additive and interaction terms
-            C = SP.concatenate((Ucovs, UintA[:,a:a+1], UintB[:,b:b+1]))
+            C = NP.concatenate((Ucovs, UintA[:,a:a+1], UintB[:,b:b+1]))
             X = intA[:,a:a+1]*intB[:,b:b+1]
-            UX = SP.dot(U.T,X);
-            UX = SP.concatenate((UX, C))
-            for phen in SP.arange(Ny):
+            UX = NP.dot(U.T,X);
+            UX = NP.concatenate((UX, C))
+            for phen in NP.arange(Ny):
                 UY_=UY[:,phen];
                 nllnull,ldeltanull=optdelta(UY_,C,S,ldeltanull=None,numintervals=10,ldeltamin=-5.0,ldeltamax=5.0);
                 nllalt,ldeltaalt=optdelta(UY_,UX,S,ldeltanull=ldeltanull,numintervals=100,ldeltamin=-5.0,ldeltamax=5.0);

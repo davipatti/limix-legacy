@@ -1,5 +1,5 @@
 import numpy.linalg as nla
-import scipy as sp
+import numpy as np
 
 def svd_reduce(X, tol = 1e-9):
     U, Sh, V = nla.svd(X, full_matrices=0)
@@ -8,7 +8,7 @@ def svd_reduce(X, tol = 1e-9):
         #warnings.warn('G has dependent columns, dimensionality reduced')
         Sh = Sh[~I]
         U  = U[:, ~I]
-        V  = sp.eye(Sh.shape[0])
-        X  = U * Sh[sp.newaxis,:]
+        V  = np.eye(Sh.shape[0])
+        X  = U * Sh[np.newaxis,:]
     S = Sh**2
     return X, U, S, V

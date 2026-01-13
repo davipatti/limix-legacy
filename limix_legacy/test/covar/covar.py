@@ -1,6 +1,6 @@
 """LMM testing code"""
 import unittest
-import scipy as SP
+import numpy as NP
 import pdb
 import sys
 import limix_legacy
@@ -16,7 +16,7 @@ class Acovar_test(object):
 
     # def test_hess(self):
     #     """test analytical hessian"""
-    #     D2=SP.zeros((self.n_params,self.n_params))
+    #     D2=NP.zeros((self.n_params,self.n_params))
     #     for i in range(self.n_params):
     #         for j in range(self.n_params):
     #             D2[i,j]=((self.C.Khess_param(i,j)-self.C.Khess_param_num(self.C,i,j))**2).max()

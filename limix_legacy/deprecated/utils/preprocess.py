@@ -13,7 +13,7 @@
 #limitations under the License.
 """preprocessing functions"""
 
-import scipy as SP
+import numpy as NP
 import scipy.special as special
 import scipy.stats as st
 import pdb
@@ -21,7 +21,7 @@ import pdb
 
 def variance_K(K, verbose=False):
     """estimate the variance explained by K"""
-    c = SP.sum((SP.eye(len(K)) - (1.0 / len(K)) * SP.ones(K.shape)) * SP.array(K))
+    c = NP.sum((NP.eye(len(K)) - (1.0 / len(K)) * NP.ones(K.shape)) * NP.array(K))
     scalar = (len(K) - 1) / c
     return 1.0/scalar
 
@@ -33,7 +33,7 @@ def scale_K(K, verbose=False,trace_method=True):
     if trace_method:
         scalar=1.0/(K.diagonal().mean())
     else:
-        c = SP.sum((SP.eye(len(K)) - (1.0 / len(K)) * SP.ones(K.shape)) * SP.array(K))
+        c = NP.sum((NP.eye(len(K)) - (1.0 / len(K)) * NP.ones(K.shape)) * NP.array(K))
         scalar = (len(K) - 1) / c
     if verbose:
         print(('Kinship scaled by: %0.4f' % scalar))
@@ -51,7 +51,7 @@ def standardize(Y,in_place=False):
     else:
         YY = Y.copy()
     for i in range(YY.shape[1]):
-        Iok = ~SP.isnan(YY[:,i])
+        Iok = ~NP.isnan(YY[:,i])
         Ym = YY[Iok,i].mean()
         YY[:,i]-=Ym
         Ys = YY[Iok,i].std()
@@ -65,15 +65,15 @@ def rankStandardizeNormal(X):
 	- each phentoype is converted to ranks and transformed back to normal using the inverse CDF
 	"""
 	Is = X.argsort(axis=0)
-	RV = SP.zeros_like(X)
-	rank = SP.zeros_like(X)
+	RV = NP.zeros_like(X)
+	rank = NP.zeros_like(X)
 	for i in range(X.shape[1]):
 		x =  X[:,i]
-		i_nan = SP.isnan(x)
+		i_nan = NP.isnan(x)
 		if 0:
 			Is = x.argsort()
-			rank = SP.zeros_like(x)
-			rank[Is] = SP.arange(X.shape[0])
+			rank = NP.zeros_like(x)
+			rank[Is] = NP.arange(X.shape[0])
 			#add one to ensure nothing = 0
 			rank +=1
 		else:
@@ -81,7 +81,7 @@ def rankStandardizeNormal(X):
 		#devide by (N+1) which yields uniform [0,1]
 		rank /= ((~i_nan).sum()+1)
 		#apply inverse gaussian cdf
-		RV[~i_nan,i] = SP.sqrt(2) * special.erfinv(2*rank-1)
+		RV[~i_nan,i] = NP.sqrt(2) * special.erfinv(2*rank-1)
 		RV[i_nan,i] = x[i_nan]
 	return RV
 
@@ -93,10 +93,10 @@ def boxcox(X):
     - each phentoype is brought to a positive schale, by first subtracting the minimum value and adding 1.
     - Then each phenotype transformed by the boxcox transformation
 	"""
-	X_transformed = SP.zeros_like(X)
-	maxlog = SP.zeros(X.shape[1])
+	X_transformed = NP.zeros_like(X)
+	maxlog = NP.zeros(X.shape[1])
 	for i in range(X.shape[1]):
-		i_nan = SP.isnan(X[:,i])
+		i_nan = NP.isnan(X[:,i])
 		values = X[~i_nan,i]
 		X_transformed[i_nan,i] = X[i_nan,i]
 		X_transformed[~i_nan,i], maxlog[i] = st.boxcox(values-values.min()+1.0)

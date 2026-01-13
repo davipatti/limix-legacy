@@ -12,7 +12,7 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 import numpy as np
-import scipy as sp
+import numpy as np
 import glob
 import pdb, sys, pickle
 from optparse import OptionParser
@@ -38,7 +38,7 @@ def get_column(filename, col, skiprows = 1, dtype = float):
         if skipped < skiprows:
             skipped += 1
             continue
-        data = sp.array(line.strip('\n').split('\t'))
+        data = np.array(line.strip('\n').split('\t'))
         results.append(data[col])
 
     try:
@@ -64,7 +64,7 @@ def load_pvals(filename, return_info = False, linreg = False):
     else:
         i_pval = 5
     if return_info:
-        index = sp.array([i_pval, 1, 3])
+        index = np.array([i_pval, 1, 3])
     else:
         index = i_pval
     pvals = get_column(filename,index)
@@ -82,8 +82,8 @@ None, chr_only = None, quiet = False, refit_delta = False, command=None, Nmin=0,
     extract_topN( Nmax,selsnps_file, linreg_out )
 
     if Nsnps is None:
-        Nsnps = sp.arange(Nmin,Nmax,increment)
-    lambdas = sp.zeros(Nsnps.shape)
+        Nsnps = np.arange(Nmin,Nmax,increment)
+    lambdas = np.zeros(Nsnps.shape)
     for i in range(Nsnps.shape[0]):
         current_dir = 'N%d'% Nsnps[i]
         out_dir_current = os.path.join(out_dir, current_dir)
@@ -127,7 +127,7 @@ def run_linreg(pheno_file,file_test=None,bfile_test = None,tfile_test = None, ou
             commandold = line.strip('\n')
             if commandold == command:
                 run  = False
-    np.savetxt(out_log, sp.array([command]),'%s')
+    np.savetxt(out_log, np.array([command]),'%s')
     if (run or recompute):
         if quiet:
             print('Running linear regression ...')
@@ -181,7 +181,7 @@ def run_fastlmm(pheno_file,file_test=None,bfile_test = None,tfile_test = None,bf
             commandold = line.strip('\n')
             if commandold == command:
                 run  = False
-    np.savetxt(out_log, sp.array([command]),'%s')
+    np.savetxt(out_log, np.array([command]),'%s')
     if (run or recompute):
         if quiet:
             print('Running LMM ...')
@@ -236,6 +236,6 @@ if __name__ == '__main__':
 
     #Nsnps0,lambdas0 = run_select_topN(pheno_file= options.pheno_file, linreg_out=linreg_out,file_test=options.file_test,bfile_test = options.bfile_test,tfile_test = options.tfile_test,bfile_sim = options.bfile_sim,file_sim = options.file_sim, tfile_sim = options.tfile_sim, out_dir=options.out_dir, covariates = options.covariates, excl_dist = options.excl_dist, excl_pos = options.excl_pos, chr_only = options.chr_only, quiet = False, refit_delta = False, command=None, Nmin=0, Nmax=100, increment=10 )
 
-    #Nsnps = sp.arange(20)
+    #Nsnps = np.arange(20)
 
     #Nsnps,lambdas = run_select_topN(pheno_file= options.pheno_file, linreg_out=linreg_out,file_test=options.file_test,bfile_test = options.bfile_test,tfile_test = options.tfile_test,bfile_sim = options.bfile_sim,file_sim = options.file_sim, tfile_sim = options.tfile_sim, out_dir=options.out_dir, covariates = options.covariates, excl_dist = options.excl_dist, excl_pos = options.excl_pos, chr_only = options.chr_only, quiet = False, refit_delta = False, command=None, Nmin=0, Nmax=100, increment=10 ,Nsnps = Nsnps)

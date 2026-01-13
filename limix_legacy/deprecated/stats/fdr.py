@@ -4,6 +4,7 @@ FDR estimation using Benjamini Hochberg and Stories method
 
 import numpy as np
 import scipy as sp
+import numpy as np
 import sys, pickle, pdb
 import scipy.stats as st
 import scipy.interpolate
@@ -34,8 +35,8 @@ def qvalues1(PV,m=None,pi=1.0):
 
     #2. estimate lambda
     if pi is None:
-        lrange = sp.linspace(0.05,0.95,max(lPV/100.0,10))
-        pil    = sp.double((PV[:,sp.newaxis]>lrange).sum(axis=0))/lPV
+        lrange = np.linspace(0.05,0.95,max(lPV/100.0,10))
+        pil    = np.float64((PV[:,np.newaxis]>lrange).sum(axis=0))/lPV
         pilr   = pil/(1.0-lrange)
         #ok, I think for SNPs this is pretty useless, pi is close to 1!
         pi =1.0
@@ -50,7 +51,7 @@ def qvalues1(PV,m=None,pi=1.0):
     for i in range(lPV-2,-1,-1):
         QV_[i] = min(pi*m*PV[i]/(i+1.0),QV_[i+1])
     #5. invert sorting
-    QV = sp.zeros_like(PV)
+    QV = np.zeros_like(PV)
     QV[IPV] = QV_
 
     QV = QV.reshape(S)
@@ -78,18 +79,18 @@ def qvalues(pv, m = None, return_pi0 = False, lowmem = False, pi0 = None, fix_la
     else:
         # evaluate pi0 for different lambdas
         pi0 = []
-        lam = sp.arange(0, 0.90, 0.01)
-        counts = sp.array([(pv > i).sum() for i in sp.arange(0, 0.9, 0.01)])
+        lam = np.arange(0, 0.90, 0.01)
+        counts = np.array([(pv > i).sum() for i in np.arange(0, 0.9, 0.01)])
 
         if fix_lambda != None:
             interv_count = (pv > fix_lambda - 0.01).sum()
-            uniform_sim = sp.array([(pv > fix_lambda-0.01).sum()*(i+1) for i in sp.arange(0, len(sp.arange(0, 0.90, 0.01)))][::-1])
+            uniform_sim = np.array([(pv > fix_lambda-0.01).sum()*(i+1) for i in np.arange(0, len(np.arange(0, 0.90, 0.01)))][::-1])
             counts += uniform_sim
 
         for l in range(len(lam)):
             pi0.append(counts[l]/(m*(1-lam[l])))
 
-        pi0 = sp.array(pi0)
+        pi0 = np.array(pi0)
 
         # fit natural cubic spline
         tck = sp.interpolate.splrep(lam, pi0, k = 3)
@@ -103,7 +104,7 @@ def qvalues(pv, m = None, return_pi0 = False, lowmem = False, pi0 = None, fix_la
 
     if lowmem:
         # low memory version, only uses 1 pv and 1 qv matrices
-        qv = sp.zeros((len(pv),))
+        qv = np.zeros((len(pv),))
         last_pv = pv.argmax()
         qv[last_pv] = (pi0*pv[last_pv]*m)/float(m)
         pv[last_pv] = -sp.inf
@@ -117,10 +118,10 @@ def qvalues(pv, m = None, return_pi0 = False, lowmem = False, pi0 = None, fix_la
             prev_qv = qv[cur_max]
 
     else:
-        p_ordered = sp.argsort(pv)
+        p_ordered = np.argsort(pv)
         pv = pv[p_ordered]
         # estimate qvalues
-        # qv = pi0*m*pv/(sp.arange(len(pv))+1.0)
+        # qv = pi0*m*pv/(np.arange(len(pv))+1.0)
 
         # for i in xrange(int(len(qv))-2, 0, -1):
         #     qv[i] = min([qv[i], qv[i+1]])
@@ -136,7 +137,7 @@ def qvalues(pv, m = None, return_pi0 = False, lowmem = False, pi0 = None, fix_la
 
     # reorder qvalues
     qv_temp = qv.copy()
-    qv = sp.zeros_like(qv)
+    qv = np.zeros_like(qv)
     qv[p_ordered] = qv_temp
 
 

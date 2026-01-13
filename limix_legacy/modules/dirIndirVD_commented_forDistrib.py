@@ -7,6 +7,7 @@
 import sys
 import warnings
 import scipy as sp
+import numpy as np
 import scipy.linalg as la
 from limix_legacy.core.mean.mean_base import MeanBase as lin_mean
 from limix_legacy.core.covar.dirIndirCov import DirIndirCov
@@ -66,14 +67,14 @@ class DirIndirVD():
 ####hack to shorten runtime
 #        uCage=sp.unique(cage_cm)
 #        remove=uCage[0:510]
-#        idx_remove = sp.array(sp.concatenate([sp.where(cage_cm==remove[i])[0] for i in range(len(remove))]))
+#        idx_remove = np.array(np.concatenate([np.where(cage_cm==remove[i])[0] for i in range(len(remove))]))
 #        cage_cm[idx_remove]='NA'
 ####hack to shorten runtime
 
         #1. define set of animals with cage and kinship information (_cm)
         #1.1 _cm animals need to be in subset_IDs
         if subset_IDs is not None:
-            Imatch = sp.nonzero(subset_IDs[:,sp.newaxis]==kinship_cm_ID)
+            Imatch = np.nonzero(subset_IDs[:,np.newaxis]==kinship_cm_ID)
             kinship_cm = kinship_cm[Imatch[1],:][:,Imatch[1]]
             kinship_cm_ID=kinship_cm_ID[Imatch[1]]
 
@@ -86,7 +87,7 @@ class DirIndirVD():
         cage_cm_ID=cage_cm_ID[has_cage]
 
         #1.3 match cages and kinship as we need both for any social analysis. note that if this is a non social analysis and cage is specified (cage_cm not None), then only those individuals with known cage will be included in the analysis. This is useful to keep same sample between social and non social analyses.
-        Imatch = sp.nonzero(cage_cm_ID[:,sp.newaxis]==kinship_cm_ID)
+        Imatch = np.nonzero(cage_cm_ID[:,np.newaxis]==kinship_cm_ID)
         cage_cm_ID = cage_cm_ID[Imatch[0]]
         cage_cm = cage_cm[Imatch[0]]
         kinship_cm = kinship_cm[Imatch[1],:][:,Imatch[1]]
@@ -101,27 +102,27 @@ class DirIndirVD():
         #2. define focal animals now: those with non missing phenotype and non missing covs, kinship and cage, and in subset_IDs
         #2.1 remove NAs from pheno
         if len(pheno.shape)==1:
-            pheno = pheno[:,sp.newaxis]
+            pheno = pheno[:,np.newaxis]
         has_pheno = (pheno!=(-999))[:,0]
         pheno=pheno[has_pheno,:]
         pheno_ID=pheno_ID[has_pheno]
         #2.2 add intercept to covs
         #if no covs are provided, make it a vector of 1s for intercept
         if covs is None:
-            covs = sp.ones((pheno.shape[0],1))
+            covs = np.ones((pheno.shape[0],1))
             covs_ID = pheno_ID
         #if covs are provided, append a vector of 1s for intercept
         else:
-            new_col=sp.ones([covs.shape[0],1])
+            new_col=np.ones([covs.shape[0],1])
             if len(covs.shape)==1:
-                covs = covs[:,sp.newaxis]
+                covs = covs[:,np.newaxis]
             covs=sp.append(new_col,covs,1)
         #2.3 remove NAs from covs
         has_covs = (covs!=(-999)).all(1)
         covs=covs[has_covs,:]
         covs_ID=covs_ID[has_covs]
         #2.4 match pheno and covs
-        Imatch = sp.nonzero(pheno_ID[:,sp.newaxis]==covs_ID)
+        Imatch = np.nonzero(pheno_ID[:,np.newaxis]==covs_ID)
         pheno = pheno[Imatch[0],:]
         pheno_ID=pheno_ID[Imatch[0]]
         covs = covs[Imatch[1],:]
@@ -130,7 +131,7 @@ class DirIndirVD():
         #True
         #pheno and covs now have no missing values and are matched - IDs are in pheno_ID and covs_ID
         #2.5 check which of those are in sampleID_cm (and thus have kinship and cage)
-        has_geno = sp.array([pheno_ID[i] in sampleID_cm for i in range(pheno_ID.shape[0])])
+        has_geno = np.array([pheno_ID[i] in sampleID_cm for i in range(pheno_ID.shape[0])])
         pheno = pheno[has_geno,:]
         covs = covs[has_geno,:]
         #create sampleID that has focal individuals.
@@ -139,10 +140,10 @@ class DirIndirVD():
         #remember sampleID_cm and sampleID are in different order (and of different length possibly)
 
         #3. create cage and kinship for focal animals
-        idxs = sp.array([sp.where(sampleID_cm==sampleID[i])[0][0] for i in range(sampleID.shape[0])])
+        idxs = np.array([np.where(sampleID_cm==sampleID[i])[0][0] for i in range(sampleID.shape[0])])
         cage=cage_cm[idxs]
         if len(cage.shape)==1:
-            cage = cage[:,sp.newaxis]
+            cage = cage[:,np.newaxis]
         kinship=kinship_cm[idxs,:][:,idxs]
         
         #4. create focal x _cm genetic cross-covariance
@@ -150,8 +151,8 @@ class DirIndirVD():
         #so sampleID along rows and sampleID_cm along colummns
 
         #5. now create environmental matrices
-        env = sp.eye(kinship.shape[0])
-        env_cm = sp.eye(kinship_cm.shape[0])
+        env = np.eye(kinship.shape[0])
+        env_cm = np.eye(kinship_cm.shape[0])
         env_cross = env_cm[idxs,:]
 
 
@@ -166,7 +167,7 @@ class DirIndirVD():
             R = la.qr(covs,mode='r')[0][:covs.shape[1],:]
             I = (abs(R.diagonal())>tol)
             if sp.any(~I):
-                warnings.warn('Covariate cols '+str(sp.where(~I)[0])+' have been removed because linearly dependent on the others')
+                warnings.warn('Covariate cols '+str(np.where(~I)[0])+' have been removed because linearly dependent on the others')
             covs = covs[:,I]
 
         self.sampleID=sampleID
@@ -190,7 +191,7 @@ class DirIndirVD():
 
         #define cagemate assignment - required for SGE, SEE, and cage effects. Z is N focal x N_cm and has 0s in cells Z_i,i (i.e. an animal is not its own cage mate)
         same_cage = 1. * (self.cage==self.cage_cm)
-        diff_inds = 1. * (self.sampleID[:,sp.newaxis]!=self.sampleID_cm)
+        diff_inds = 1. * (self.sampleID[:,np.newaxis]!=self.sampleID_cm)
         Z = same_cage * diff_inds
 
         #define the overall genetic covariance matrix
@@ -202,11 +203,11 @@ class DirIndirVD():
             #now create and scale SGE and DGE/SGE covariance components
             if IGE:
                 #first SGE component: ZKcmZ' in this code (ZKZ' in paper)
-                _ZKcmZ = sp.dot(Z,sp.dot(self.kinship_cm,Z.T))
+                _ZKcmZ = np.dot(Z,np.dot(self.kinship_cm,Z.T))
                 sf_ZKcmZ = covar_rescaling_factor(_ZKcmZ)
                 self.kinship_cm *= sf_ZKcmZ
                  #second DGE/SGE covariance:
-                self.kinship_cross *= sp.sqrt(sf_K * sf_ZKcmZ)
+                self.kinship_cross *= np.sqrt(sf_K * sf_ZKcmZ)
         
         if DGE and not IGE:
             self._genoCov = FixedCov(self.kinship)
@@ -223,10 +224,10 @@ class DirIndirVD():
         #env naturally has sample variance 1 so no need to scale it
         if IEE:
             #_ZZ = ZIcmZ'
-            _ZZ  = sp.dot(Z,Z.T)
+            _ZZ  = np.dot(Z,Z.T)
             sf_ZZ = covar_rescaling_factor(_ZZ)
             self.env_cm *= sf_ZZ
-            self.env_cross *= sp.sqrt(1 * sf_ZZ)
+            self.env_cross *= np.sqrt(1 * sf_ZZ)
 
             self._envCov = DirIndirCov(self.env,Z,kinship_cm=self.env_cm,kinship_cross=self.env_cross)
         else:
@@ -237,11 +238,11 @@ class DirIndirVD():
             N = self.pheno.shape[0]
             uCage = sp.unique(self.cage)
             #W, the cage design matrix, is N x n_cages (where N is number of focal animals) 
-            W = sp.zeros((N,uCage.shape[0]))
+            W = np.zeros((N,uCage.shape[0]))
             for cv_i, cv in enumerate(uCage):
                 W[:,cv_i] = 1.*(self.cage[:,0]==cv)
             #WW, the cage effect covariance matrix, is N x N and has 1s in cells WW_i,i
-            WW = sp.dot(W,W.T)
+            WW = np.dot(W,W.T)
             #this is equivalent to getting covar_rescaling_factor first and then multiplying, as done for other matrices above
             WW = covar_rescale(WW)
             self._cageCov = FixedCov(WW)
@@ -268,7 +269,7 @@ class DirIndirVD():
         """optimises the covariance matrix = estimate variance components"""
         if 0:
             # trial for inizialization it is complicated though
-            cov = sp.array([[0.2,1e-4],[1e-4,1e-4]])
+            cov = np.array([[0.2,1e-4],[1e-4,1e-4]])
             self._genoCov.setCovariance(cov)
             self._envCov.setCovariance(cov)
             self._cageCov.scale = 0.2
@@ -288,10 +289,10 @@ class DirIndirVD():
                 corr_params = STE_output['corr_params']
             
             except:
-                genetic_STEs = sp.array([[-999,-999],[-999,-999]])
+                genetic_STEs = np.array([[-999,-999],[-999,-999]])
                 corr_params = (-999)
         else:
-            genetic_STEs = sp.array([[-999,-999],[-999,-999]])
+            genetic_STEs = np.array([[-999,-999],[-999,-999]])
             corr_params = (-999)
 
         R = {}
@@ -330,7 +331,7 @@ class DirIndirVD():
         elif DGE and IGE:
             R['var_Ad'] = self._genoCov.covff.K()[0,0]
             R['var_As'] = self._genoCov.covff.K()[1,1]
-            R['corr_Ads'] = self._genoCov.covff.K()[0,1]/(sp.sqrt(R['var_Ad']) * sp.sqrt(R['var_As']))
+            R['corr_Ads'] = self._genoCov.covff.K()[0,1]/(np.sqrt(R['var_Ad']) * np.sqrt(R['var_As']))
             R['total_gen_var'] = 1/covar_rescaling_factor(self._genoCov.K())
         else:
             R['var_Ad'] = (-999)
@@ -345,7 +346,7 @@ class DirIndirVD():
         else:
             R['var_Ed'] = self._envCov.covff.K()[0,0]
             R['var_Es'] = self._envCov.covff.K()[1,1]
-            R['corr_Eds'] = self._envCov.covff.K()[0,1] / (sp.sqrt(R['var_Ed']) * sp.sqrt(R['var_Es']))
+            R['corr_Eds'] = self._envCov.covff.K()[0,1] / (np.sqrt(R['var_Ed']) * np.sqrt(R['var_Es']))
 
 
         if cageEffect:
@@ -416,8 +417,8 @@ class DirIndirVD():
             pass
 
         # make them vectors
-        aP = sp.array(aP)
-        vi = sp.array(vi)
+        aP = np.array(aP)
+        vi = np.array(vi)
 
         # overall variance
         # this should correspond to the one you get from sampling
@@ -428,42 +429,42 @@ class DirIndirVD():
         h = (aP*vi) / v
 
         # jacobean
-        J = sp.zeros((aP.shape[0], aP.shape[0]))
+        J = np.zeros((aP.shape[0], aP.shape[0]))
         J[:, 0] = h / vi
         J[-1, 1:] = -v / vi[-1]
         for i in range(aP.shape[0]-1):
             J[i, i+1] = v / vi[i]
 
         # transformation of Fisher
-        Fnew = sp.dot(J.T, sp.dot(F, J))
+        Fnew = np.dot(J.T, np.dot(F, J))
 
         # invert the new Fisher
         S,U = sp.linalg.eigh(Fnew)
         I = S>1e-9
         U = U[:,I]
         S = S[I]
-        FI = sp.dot(U,sp.dot(sp.diag(S**(-1)),U.T))
+        FI = np.dot(U,np.dot(sp.diag(S**(-1)),U.T))
         # reorder to have same ordering as before
         idxs = list(range(1, aP.shape[0]))
         idxs.append(0)
         FI = FI[idxs, :][:, idxs]
         # R is 2x2 matrix: STE_Ad and STE_As on diag, STE_Ads off
-        R = sp.zeros((2, 2))
+        R = np.zeros((2, 2))
         STE_output = {}
 
         if DGE and IGE:
             FI_geno = FI[:3,:][:,:3]
-            #STEs = sp.sqrt(FI_geno.diagonal()) ( ordered as Ad Ads As)
+            #STEs = np.sqrt(FI_geno.diagonal()) ( ordered as Ad Ads As)
             #STEs = sqrt of var of VC corr_params 
             #fills diag and 1 off first
-            R[sp.tril_indices(2)] = sp.sqrt(FI_geno.diagonal())
+            R[sp.tril_indices(2)] = np.sqrt(FI_geno.diagonal())
             #now fills other off
             R = R + R.T - sp.diag(R.diagonal())
         
-            corr_param_Ad_As = FI_geno[0,2]/(sp.sqrt(FI_geno[0,0])*sp.sqrt(FI_geno[2,2]))
+            corr_param_Ad_As = FI_geno[0,2]/(np.sqrt(FI_geno[0,0])*np.sqrt(FI_geno[2,2]))
         
         elif DGE and (not IGE):
-            R[0,0] = sp.sqrt(FI[0,0])
+            R[0,0] = np.sqrt(FI[0,0])
             R[0,1] = -999
             R[1,0] = -999
             R[1,1] = -999
@@ -473,7 +474,7 @@ class DirIndirVD():
             R[0,0] = -999
             R[0,1] = -999
             R[1,0] = -999
-            R[1,1] = sp.sqrt(FI[0,0])
+            R[1,1] = np.sqrt(FI[0,0])
             corr_param_Ad_As = -999
        
         else:

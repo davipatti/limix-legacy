@@ -2,7 +2,7 @@
 import h5py
 import pandas
 from optparse import OptionParser
-import scipy as sp
+import numpy as np
 import os
 import pdb
 import subprocess, sys, os
@@ -124,15 +124,15 @@ class LIMIX_converter(object):
         #load position and meta information
         indv_file = g012_file + '.indv'
         pos_file  = g012_file + '.pos'
-        sample_ID = sp.loadtxt(indv_file,dtype='str')
-        pos  = sp.loadtxt(pos_file,dtype='str')
+        sample_ID = np.loadtxt(indv_file,dtype='str')
+        pos  = np.loadtxt(pos_file,dtype='str')
         chrom = pos[:,0]
-        pos   = sp.array(pos[:,1],dtype='int')
+        pos   = np.array(pos[:,1],dtype='int')
 
         row_header.create_dataset(name='sample_ID',data=sample_ID)
         col_header.create_dataset(name='chrom',data=chrom)
         col_header.create_dataset(name='pos',data=pos)
-        M = sp.loadtxt(g012_file,dtype='uint8')
+        M = np.loadtxt(g012_file,dtype='uint8')
         snps = M[:,1::]
         genotype.create_dataset(name='matrix',data=snps,chunks=(snps.shape[0],min(10000,snps.shape[1])),compression='gzip')
         pass
@@ -157,13 +157,13 @@ class LIMIX_converter(object):
         #load position and meta information
         indv_file = g012_file + '.indv'
         pos_file  = g012_file + '.pos'
-        sample_ID = sp.loadtxt(indv_file,dtype='str')
-        pos  = sp.loadtxt(pos_file,dtype='str')
+        sample_ID = np.loadtxt(indv_file,dtype='str')
+        pos  = np.loadtxt(pos_file,dtype='str')
         chrom = pos[:,0]
-        pos   = sp.array(pos[:,1],dtype='int')
+        pos   = np.array(pos[:,1],dtype='int')
         # load marker info
         ids_file = g012_file + '.ids'
-        ids = sp.loadtxt(ids_file,dtype='str')
+        ids = np.loadtxt(ids_file,dtype='str')
         gdid = ids[:,2]
         ref = ids[:,3]
         alt = ids[:,4]
@@ -175,7 +175,7 @@ class LIMIX_converter(object):
         col_header.create_dataset(name='ref',data=ref)
         col_header.create_dataset(name='alt',data=alt)
         col_header.create_dataset(name='IMP2',data=impute)
-        M = sp.loadtxt(g012_file,dtype='float')
+        M = np.loadtxt(g012_file,dtype='float')
         snps = M[:,:-1]
         genotype.create_dataset(name='matrix',data=snps,chunks=(snps.shape[0],min(10000,snps.shape[1])),compression='gzip')
         pass

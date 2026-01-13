@@ -20,6 +20,7 @@ import limix_legacy.deprecated.stats.fdr as fdr
 from limix_legacy.deprecated.stats.pca import *
 import limix_legacy.deprecated as dlimix_legacy
 import scipy as sp
+import numpy as np
 import scipy.linalg as la
 import pdb
 import scipy.linalg as linalg
@@ -50,7 +51,7 @@ class PANAMA:
             if type(Ks)!=list: Ks = [Ks]
             self.Ks = Ks
         elif self.X is not None:
-            self.Kpop = sp.dot(self.X,self.X.T)
+            self.Kpop = np.dot(self.X,self.X.T)
             self.Kpop = [self.Kpop/self.Kpop.diagonal().mean()]
         else:
             assert use_Kpop==False, 'no Kpop'
@@ -71,11 +72,11 @@ class PANAMA:
         if 0:
             covar  = limix_legacy.CCovLinearISO(rank)
             ll  = limix_legacy.CLikNormalIso()
-            X0 = sp.random.randn(self.N,rank)
+            X0 = np.random.randn(self.N,rank)
             X0 = PCA(self.Y,rank)[0]
-            X0 /= sp.sqrt(rank)
-            covar_params = sp.array([1.0])
-            lik_params = sp.array([1.0])
+            X0 /= np.sqrt(rank)
+            covar_params = np.array([1.0])
+            lik_params = np.array([1.0])
 
             hyperparams = limix_legacy.CGPHyperParams()
             hyperparams['covar'] = covar_params
@@ -84,10 +85,10 @@ class PANAMA:
 
             constrainU = limix_legacy.CGPHyperParams()
             constrainL = limix_legacy.CGPHyperParams()
-            constrainU['covar'] = +5*sp.ones_like(covar_params);
-            constrainL['covar'] = 0*sp.ones_like(covar_params);
-            constrainU['lik'] = +5*sp.ones_like(lik_params);
-            constrainL['lik'] = 0*sp.ones_like(lik_params);
+            constrainU['covar'] = +5*np.ones_like(covar_params);
+            constrainL['covar'] = 0*np.ones_like(covar_params);
+            constrainU['lik'] = +5*np.ones_like(lik_params);
+            constrainL['lik'] = 0*np.ones_like(lik_params);
 
         if 1:
             covar  = limix_legacy.CSumCF()
@@ -95,7 +96,7 @@ class PANAMA:
                 covar_1 =  limix_legacy.CCovLinearARD(rank)
                 covar_params = []
                 for d in range(rank):
-                    covar_params.append(1/sp.sqrt(d+2))
+                    covar_params.append(1/np.sqrt(d+2))
             else:
                 covar_1 =  limix_legacy.CCovLinearISO(rank)
                 covar_params = [1.0]
@@ -107,9 +108,9 @@ class PANAMA:
 
             ll  = limix_legacy.CLikNormalIso()
             X0 = PCA(self.Y,rank)[0]
-            X0 /= sp.sqrt(rank)
-            covar_params = sp.array(covar_params)
-            lik_params = sp.array([1.0])
+            X0 /= np.sqrt(rank)
+            covar_params = np.array(covar_params)
+            lik_params = np.array([1.0])
 
             hyperparams = limix_legacy.CGPHyperParams()
             hyperparams['covar'] = covar_params
@@ -118,9 +119,9 @@ class PANAMA:
 
             constrainU = limix_legacy.CGPHyperParams()
             constrainL = limix_legacy.CGPHyperParams()
-            constrainU['covar'] = +5*sp.ones_like(covar_params);
-            constrainL['covar'] = -5*sp.ones_like(covar_params);
-            constrainU['lik'] = +5*sp.ones_like(lik_params);
+            constrainU['covar'] = +5*np.ones_like(covar_params);
+            constrainL['covar'] = -5*np.ones_like(covar_params);
+            constrainU['lik'] = +5*np.ones_like(lik_params);
 
 
         gp=limix_legacy.CGPbase(covar,ll)
@@ -154,15 +155,15 @@ class PANAMA:
         if LinearARD:
             V['LinearARD'] = covar_1.getParams()**2*covar_1.getX().var(0)
         else:
-            V['Kpanama'] = sp.array([covar_1.K().diagonal().mean()])
+            V['Kpanama'] = np.array([covar_1.K().diagonal().mean()])
         if self.use_Kpop:
-            V['Ks'] = sp.array([covar.getCovariance(c_i+1).K().diagonal().mean() for c_i in range(len(self.Ks))])
+            V['Ks'] = np.array([covar.getCovariance(c_i+1).K().diagonal().mean() for c_i in range(len(self.Ks))])
         V['noise'] = gp.getParams()['lik']**2
         self.varianceComps = V
 
         # predictions
         Ki = la.inv(ll.K()+covar.K())
-        self.Ypanama = sp.dot(covar_1.K(),sp.dot(Ki,self.Y))
+        self.Ypanama = np.dot(covar_1.K(),np.dot(Ki,self.Y))
 
     def get_Ypanama(self):
         """

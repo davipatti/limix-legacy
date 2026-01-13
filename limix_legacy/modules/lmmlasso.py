@@ -6,11 +6,10 @@ Created on Dec 19, 2013
 
 from sklearn.linear_model import Lasso
 from sklearn.metrics import mean_squared_error
-import sklearn.cross_validation as cross_validation
+from sklearn.model_selection import KFold
 
 from .varianceDecomposition import VarianceDecomposition
 from . import qtl
-import scipy as SP
 import numpy as NP
 import scipy.stats as ST
 import time
@@ -30,15 +29,15 @@ def compute_linear_kernel(X,idx=None,jitter=1e-3,standardize=True):
     """
     N = X.shape[0]
     if idx is not None:
-        K = SP.dot(X[:,idx],X[:,idx].T)
+        K = NP.dot(X[:,idx],X[:,idx].T)
     else:
-        K = SP.dot(X,X.T)
+        K = NP.dot(X,X.T)
 
     if standardize:
-        K /= SP.diag(K).mean()
+        K /= NP.diag(K).mean()
 
     if jitter:
-        K += jitter*SP.eye(N)
+        K += jitter*NP.eye(N)
 
     return K
 
@@ -55,11 +54,11 @@ def runStabilitySelection(estimator,X,y,K=None,n_repeats=100,frac_sub=0.5,verbos
     N,F = X.shape
     Nsub = int(frac_sub*N)
 
-    W_nonzero = SP.zeros((n_repeats,F),dtype=bool)
+    W_nonzero = NP.zeros((n_repeats,F),dtype=bool)
 
     for irep in range(n_repeats):
         if verbose: print(('Running %d/%d'%(irep,n_repeats)))
-        iperm = SP.random.permutation(N)[:Nsub]
+        iperm = NP.random.permutation(N)[:Nsub]
 
         if K is not None:
             estimator.fit(X[iperm],y[iperm],K=K[iperm][:,iperm])
@@ -121,11 +120,11 @@ def runCrossValidation(estimator,X,y,alphas,K=None,n_folds=10,verbose=False):
 
     """ setting up """
     N = X.shape[0]
-    kfold = cross_validation.KFold(N, n_folds=n_folds)
+    kfold = KFold(n_splits=n_folds).split(range(N))
     n_alphas = len(alphas)
-    MSE_train = SP.zeros((n_folds,n_alphas))
-    MSE_test  = SP.zeros((n_folds,n_alphas))
-    W_nonzero = SP.zeros((n_folds,n_alphas))
+    MSE_train = NP.zeros((n_folds,n_alphas))
+    MSE_test  = NP.zeros((n_folds,n_alphas))
+    W_nonzero = NP.zeros((n_folds,n_alphas))
 
     t1 = time.time()
     ifold = 0
@@ -154,7 +153,7 @@ def runCrossValidation(estimator,X,y,alphas,K=None,n_folds=10,verbose=False):
 
             MSE_train[ifold,ialpha]  = mean_squared_error(ytrain_star,y_train)
             MSE_test[ifold,ialpha]   = mean_squared_error(ytest_star,y_test)
-            W_nonzero[ifold,ialpha]  = SP.sum(estimator.coef_!=0)
+            W_nonzero[ifold,ialpha]  = NP.sum(estimator.coef_!=0)
 
         ifold +=1
 
@@ -220,16 +219,16 @@ class LmmLasso(Lasso):
 
         """ rotating data """
         Sdi = 1. / (S + delta0)
-        Sdi_sqrt = SP.sqrt(Sdi)
-        SUX = SP.dot(U.T, X)
-        SUX = SUX * SP.tile(Sdi_sqrt, (n_f, 1)).T
-        SUy = SP.dot(U.T, y)
+        Sdi_sqrt = NP.sqrt(Sdi)
+        SUX = NP.dot(U.T, X)
+        SUX = SUX * NP.tile(Sdi_sqrt, (n_f, 1)).T
+        SUy = NP.dot(U.T, y)
         SUy = Sdi_sqrt * SUy
 
         """ fitting lasso """
         super(LmmLasso, self).fit(SUX, SUy, **lasso_args)
         yhat = super(LmmLasso, self).predict(X)
-        self.w_ridge = LA.solve(K + delta0 * SP.eye(n_s), y - yhat)
+        self.w_ridge = LA.solve(K + delta0 * NP.eye(n_s), y - yhat)
 
         time_end = time.time()
         time_diff = time_end - time_start
@@ -265,6 +264,6 @@ class LmmLasso(Lasso):
 
         fixed_effect = super(LmmLasso, self).predict(Xstar)
         if Kstar is not None:
-            return fixed_effect + SP.dot(Kstar, self.w_ridge)
+            return fixed_effect + NP.dot(Kstar, self.w_ridge)
         else:
             return fixed_effect

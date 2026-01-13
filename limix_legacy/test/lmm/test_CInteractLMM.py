@@ -1,6 +1,6 @@
 """LMM testing code"""
 import unittest
-import scipy as SP
+import numpy as NP
 import pdb
 import limix_legacy
 import limix_legacy.deprecated as dlimix_legacy
@@ -23,8 +23,8 @@ class CIntearctLMM_test(unittest.TestCase):
         for dn in self.datasets:
             D = data.load(os.path.join(self.dir_name,dn))
             N = D['X'].shape[0]
-            inter0 = SP.zeros([N,0])#fixed verion: all 0 feature did not work: #inter0 = SP.zeros([N,1])N-by-0 matrix instead of N-by-1 works
-            inter1 = SP.ones([N,1])
+            inter0 = NP.zeros([N,0])#fixed verion: all 0 feature did not work: #inter0 = NP.zeros([N,1])N-by-0 matrix instead of N-by-1 works
+            inter1 = NP.ones([N,1])
             lmm = dlimix_legacy.CInteractLMM()
             lmm.setK(D['K'])
             lmm.setSNPs(D['X'])
@@ -36,7 +36,7 @@ class CIntearctLMM_test(unittest.TestCase):
             lmm.setInter(inter1)
             lmm.process()
             pv = lmm.getPv().ravel()
-            D2= SP.sqrt( ((SP.log10(pv)-SP.log10(D['pv']))**2).mean())
+            D2= NP.sqrt( ((NP.log10(pv)-NP.log10(D['pv']))**2).mean())
             self.assertTrue(D2<1E-6)
 
 
@@ -45,10 +45,10 @@ class CIntearctLMM_test(unittest.TestCase):
         #test permutation function
         for dn in self.datasets:
             D = data.load(os.path.join(self.dir_name,dn))
-            perm = SP.random.permutation(D['X'].shape[0])
+            perm = NP.random.permutation(D['X'].shape[0])
             N = D['X'].shape[0]
-            inter0 = SP.zeros([N,0])#fix, as old version with all zero feature does not work#N-by-0 matrix instead of N-by-1 works
-            inter1 = SP.ones([N,1])
+            inter0 = NP.zeros([N,0])#fix, as old version with all zero feature does not work#N-by-0 matrix instead of N-by-1 works
+            inter1 = NP.ones([N,1])
 
             #1. set permuattion
             lmm = dlimix_legacy.CInteractLMM()
@@ -60,7 +60,7 @@ class CIntearctLMM_test(unittest.TestCase):
             lmm.setPheno(D['Y'])
             if 1:
                 #pdb.set_trace()
-                perm = SP.array(perm,dtype='int32')#Windows needs int32 as long -> fix interface to accept int64 types
+                perm = NP.array(perm,dtype='int32')#Windows needs int32 as long -> fix interface to accept int64 types
             lmm.setPermutation(perm)
             lmm.process()
             pv_perm1 = lmm.getPv().ravel()
@@ -74,8 +74,8 @@ class CIntearctLMM_test(unittest.TestCase):
             lmm.setPheno(D['Y'])
             lmm.process()
             pv_perm2 = lmm.getPv().ravel()
-            D2 = (SP.log10(pv_perm1)-SP.log10(pv_perm2))**2
-            RV = SP.sqrt(D2.mean())
+            D2 = (NP.log10(pv_perm1)-NP.log10(pv_perm2))**2
+            RV = NP.sqrt(D2.mean())
             self.assertTrue(RV<1E-6)
 
 

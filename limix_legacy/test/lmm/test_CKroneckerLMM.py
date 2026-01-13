@@ -1,6 +1,6 @@
 """LMM testing code"""
 import unittest
-import scipy as SP
+import numpy as NP
 import pdb
 import limix_legacy
 import limix_legacy.deprecated as dlimix_legacy
@@ -22,14 +22,14 @@ class CKroneckerLMM_test(unittest.TestCase):
             #construct Kronecker LMM model which has the special case of standard LMM
             #covar1: genotype matrix
             K1r = D['K']
-            K1c = SP.eye(1)
-            K2r = SP.eye(D['K'].shape[0])
-            K2c = SP.eye(1)
-            A   = SP.eye(1)
-            Acov = SP.eye(1)
-            Xcov  = D['Cov'][:,SP.newaxis]
+            K1c = NP.eye(1)
+            K2r = NP.eye(D['K'].shape[0])
+            K2c = NP.eye(1)
+            A   = NP.eye(1)
+            Acov = NP.eye(1)
+            Xcov  = D['Cov'][:,NP.newaxis]
             X      = D['X']
-            Y      = D['Y'][:,SP.newaxis]
+            Y      = D['Y'][:,NP.newaxis]
 
             lmm = dlimix_legacy.CKroneckerLMM()
             lmm.setK1r(K1r)
@@ -48,8 +48,8 @@ class CKroneckerLMM_test(unittest.TestCase):
 
             lmm.process()
             pv = lmm.getPv().ravel()
-            D2= ((SP.log10(pv)-SP.log10(D['pv']))**2)
-            RV = SP.sqrt(D2.mean())
+            D2= ((NP.log10(pv)-NP.log10(D['pv']))**2)
+            RV = NP.sqrt(D2.mean())
             #print "\n"
             #print pv[0:10]
             #print D['pv'][0:10]
@@ -66,20 +66,20 @@ class CKroneckerLMM_test(unittest.TestCase):
             N = D['K'].shape[0]
             P = 3
             K1r = D['K']
-            #K1c = SP.zeros([2,2])
+            #K1c = NP.zeros([2,2])
             #K1c[0,0] = 1
-            K1c = SP.eye(P)
-            K2r = SP.eye(N)
-            K2c = SP.eye(P)
+            K1c = NP.eye(P)
+            K2r = NP.eye(N)
+            K2c = NP.eye(P)
 
-            #A   = SP.zeros([1,2])
+            #A   = NP.zeros([1,2])
             #A[0,0] =1
-            A = SP.eye(P)
-            Acov = SP.eye(P)
-            Xcov = D['Cov'][:,SP.newaxis]
+            A = NP.eye(P)
+            Acov = NP.eye(P)
+            Xcov = D['Cov'][:,NP.newaxis]
             X      = D['X']
-            Y      = D['Y'][:,SP.newaxis]
-            Y      = SP.tile(Y,(1,P))
+            Y      = D['Y'][:,NP.newaxis]
+            Y      = NP.tile(Y,(1,P))
 
             lmm = dlimix_legacy.CKroneckerLMM()
             lmm.setK1r(K1r)
@@ -105,8 +105,8 @@ class CKroneckerLMM_test(unittest.TestCase):
             lrt = st.chi2.isf(pv_Pdof,P)/P
             pv = st.chi2.sf(lrt,1)
             #compare with single DOF P-values:
-            D2= ((SP.log10(pv)-SP.log10(D['pv']))**2)
-            RV = SP.sqrt(D2.mean())
+            D2= ((NP.log10(pv)-NP.log10(D['pv']))**2)
+            RV = NP.sqrt(D2.mean())
             #print "\n"
             #print pv[0:10]
             #print D['pv'][0:10]
@@ -120,7 +120,7 @@ class CKroneckerLMM_test(unittest.TestCase):
         #test permutation function
         for dn in self.datasets:
             D = data.load(os.path.join(self.dir_name,dn))
-            perm = SP.random.permutation(D['X'].shape[0])
+            perm = NP.random.permutation(D['X'].shape[0])
             #1. set permuattion
             lmm = dlimix_legacy.CLMM()
             lmm.setK(D['K'])
@@ -129,7 +129,7 @@ class CKroneckerLMM_test(unittest.TestCase):
             lmm.setPheno(D['Y'])
             if 1:
                 #pdb.set_trace()
-                perm = SP.array(perm,dtype='int32')#Windows needs int32 as long -> fix interface to accept int64 types
+                perm = NP.array(perm,dtype='int32')#Windows needs int32 as long -> fix interface to accept int64 types
             lmm.setPermutation(perm)
             lmm.process()
             pv_perm1 = lmm.getPv().ravel()
@@ -141,8 +141,8 @@ class CKroneckerLMM_test(unittest.TestCase):
             lmm.setPheno(D['Y'])
             lmm.process()
             pv_perm2 = lmm.getPv().ravel()
-            D2 = (SP.log10(pv_perm1)-SP.log10(pv_perm2))**2
-            RV = SP.sqrt(D2.mean())
+            D2 = (NP.log10(pv_perm1)-NP.log10(pv_perm2))**2
+            RV = NP.sqrt(D2.mean())
             self.assertTrue(RV<1E-6)
 
 

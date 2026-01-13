@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import scipy as SP
+import numpy as NP
 import limix_legacy.deprecated.io.data_util as du
 import pandas as pd
 
@@ -55,14 +55,14 @@ class pheno_reader_tables():
             child_names.append(child._v_name)
             child_arrays.append(child[:])
         multiindex = pd.MultiIndex.from_arrays(arrays=child_arrays,names=child_names)
-        self.index_frame = pd.DataFrame(data=SP.arange(self.pheno_matrix.shape[1]),index = multiindex)
-        self.headers_frame = pd.DataFrame(data=SP.array(child_arrays).T,index=self.phenotype_ID,columns=child_names)
+        self.index_frame = pd.DataFrame(data=NP.arange(self.pheno_matrix.shape[1]),index = multiindex)
+        self.headers_frame = pd.DataFrame(data=NP.array(child_arrays).T,index=self.phenotype_ID,columns=child_names)
 
         if 'gene_ID' in headers:
             self.eqtl = True
             self.gene_ID = self.pheno.col_header.gene_ID[:]
-            self.gene_pos_start = SP.array([self.pheno.col_header.gene_chrom[:],self.pheno.col_header.gene_start[:]],dtype='int').T
-            self.gene_pos_end = SP.array([self.pheno.col_header.gene_chrom[:],self.pheno.col_header.gene_end[:]],dtype='int').T
+            self.gene_pos_start = NP.array([self.pheno.col_header.gene_chrom[:],self.pheno.col_header.gene_start[:]],dtype='int').T
+            self.gene_pos_end = NP.array([self.pheno.col_header.gene_chrom[:],self.pheno.col_header.gene_end[:]],dtype='int').T
             self.gene_ID_list= list(set(self.gene_ID))
         else:
             self.eqtl = False
@@ -94,7 +94,7 @@ class pheno_reader_tables():
             sample_idx_intersect:        index of individuals in phenotypes after filtering missing valuesS
         """
         if phenotype_IDs is not None:
-            I = SP.array([SP.nonzero(self.phenotype_ID==n)[0][0] for n in phenotype_IDs])
+            I = NP.array([NP.nonzero(self.phenotype_ID==n)[0][0] for n in phenotype_IDs])
         elif phenotype_query is not None:
             try:
                 I = self.index_frame.query(phenotype_query).values[:,0]
@@ -103,18 +103,18 @@ class pheno_reader_tables():
                 #empty response
                 if len(I) == 0:
                     print(("query '%s' yielded no results!" % (phenotype_query)))
-                    I = SP.zeros([0],dtype="int")
+                    I = NP.zeros([0],dtype="int")
 
             except Exception as arg:
 
                 print(("query '%s' yielded no results: %s" % (phenotype_query, str(arg))))
 
-                I = SP.zeros([0],dtype="int")
+                I = NP.zeros([0],dtype="int")
         else:
-            I = SP.arange(self.phenotype_ID.shape[0])
-        phenotypes = SP.array(self.pheno_matrix[:,I],dtype='float')
+            I = NP.arange(self.phenotype_ID.shape[0])
+        phenotypes = NP.array(self.pheno_matrix[:,I],dtype='float')
         phenotypes = phenotypes[sample_idx]
-        Iok = (~SP.isnan(phenotypes))
+        Iok = (~NP.isnan(phenotypes))
 
         if intersection:
             sample_idx_intersect = Iok.all(axis=1)
@@ -151,7 +151,7 @@ class pheno_reader_tables():
 
                 print(("query '%s' yielded no results: %s"%phenotype_query, str(arg)))
 
-                I = SP.zeros([0],dtype="int")
+                I = NP.zeros([0],dtype="int")
             return {"start" : self.gene_pos_start[I], "end" : self.gene_pos_end[I]}
         else:
             return {"start" : self.gene_pos_start, "end" : self.gene_pos_end}
@@ -186,7 +186,7 @@ class pheno_reader_h5py_deprecated():
         if 'gene_ID' in headers:
             self.eqtl = True
             self.gene_ID = self.pheno['col_header']['gene_ID'][:]
-            self.gene_pos = SP.array([self.pheno['col_header']['gene_chrom'][:],self.pheno['col_header']['gene_start'][:],self.pheno['col_header']['gene_end']],dtype='int').T
+            self.gene_pos = NP.array([self.pheno['col_header']['gene_chrom'][:],self.pheno['col_header']['gene_start'][:],self.pheno['col_header']['gene_end']],dtype='int').T
             self.gene_ID_list= list(set(self.gene_ID))
         else:
             self.eqtl = False
@@ -214,12 +214,12 @@ class pheno_reader_h5py_deprecated():
             sample_idx_intersect:        index of individuals in phenotypes after filtering missing valuesS
         """
         if phenotype_IDs is not None:
-            I = SP.array([SP.nonzero(self.phenotype_ID==n)[0][0] for n in phenotype_IDs])
+            I = NP.array([NP.nonzero(self.phenotype_ID==n)[0][0] for n in phenotype_IDs])
         else:
-            I = SP.arange(self.phenotype_ID.shape[0])
-        phenotypes = SP.array(self.pheno_matrix[:,I],dtype='float')
+            I = NP.arange(self.phenotype_ID.shape[0])
+        phenotypes = NP.array(self.pheno_matrix[:,I],dtype='float')
         phenotypes = phenotypes[sample_idx]
-        Iok = (~SP.isnan(phenotypes))
+        Iok = (~NP.isnan(phenotypes))
 
         if intersection:
             sample_idx_intersect = Iok.all(axis=1)
@@ -251,12 +251,12 @@ class pheno_reader_h5py_deprecated():
             sample_idx_intersect:        index of individuals in phenotypes after filtering missing valuesS
         """
         if phenotype_IDs is not None:
-            I = SP.array([SP.nonzero(self.phenotype_ID==n)[0][0] for n in phenotype_IDs])
+            I = NP.array([NP.nonzero(self.phenotype_ID==n)[0][0] for n in phenotype_IDs])
         else:
-            I = SP.arange(self.phenotype_ID.shape[0])
-        phenotypes = SP.array(self.pheno_matrix[:,I],dtype='float')
+            I = NP.arange(self.phenotype_ID.shape[0])
+        phenotypes = NP.array(self.pheno_matrix[:,I],dtype='float')
         phenotypes = phenotypes[sample_idx]
-        Iok = (~SP.isnan(phenotypes))
+        Iok = (~NP.isnan(phenotypes))
 
         if intersection:
             sample_idx_intersect = Iok.all(axis=1)

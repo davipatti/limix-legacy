@@ -1,6 +1,5 @@
 """GP testing code"""
 import unittest
-import scipy as SP
 import numpy as np
 import limix_legacy.deprecated as dlimix_legacy
 import scipy.linalg as linalg
@@ -13,7 +12,7 @@ def PCA(Y, components):
     w0: weights
     """
     sv = linalg.svd(Y, full_matrices=0);
-    [s0, w0] = [sv[0][:, 0:components], SP.dot(SP.diag(sv[1]), sv[2]).T[:, 0:components]]
+    [s0, w0] = [sv[0][:, 0:components], NP.dot(NP.diag(sv[1]), sv[2]).T[:, 0:components]]
     v = s0.std(axis=0)
     s0 /= v;
     w0 *= v;
@@ -31,20 +30,20 @@ class CGPLVM_test(unittest.TestCase):
         K = self.settings['K']
         D = self.settings['D']
 
-        SP.random.seed(1)
-        S = SP.random.randn(N,K)
-        W = SP.random.randn(D,K)
+        np.random.seed(1)
+        S = np.random.randn(N,K)
+        W = np.random.randn(D,K)
 
-        Y = SP.dot(W,S.T).T
-        Y+= 0.1*SP.random.randn(N,D)
+        Y = NP.dot(W,S.T).T
+        Y+= 0.1*np.random.randn(N,D)
 
-        X0 = SP.random.randn(N,K)
+        X0 = np.random.randn(N,K)
         X0 = PCA(Y,K)[0]
         RV = {'X0': X0,'Y':Y,'S':S,'W':W}
         return RV
 
     def setUp(self):
-        SP.random.seed(1)
+        np.random.seed(1)
 
         #1. simulate
         self.settings = {'K':5,'N':100,'D':80}
@@ -58,8 +57,8 @@ class CGPLVM_test(unittest.TestCase):
         covar  = dlimix_legacy.CCovLinearISO(K)
         ll  = dlimix_legacy.CLikNormalIso()
         #create hyperparm
-        covar_params = SP.array([1.0])
-        lik_params = SP.array([1.0])
+        covar_params = NP.array([1.0])
+        lik_params = NP.array([1.0])
         hyperparams = dlimix_legacy.CGPHyperParams()
         hyperparams['covar'] = covar_params
         hyperparams['lik'] = lik_params
@@ -80,9 +79,9 @@ class CGPLVM_test(unittest.TestCase):
         RV = self.gpopt.opt()
         RV = self.gpopt.opt()
 
-        m = (SP.absolute(self.gp.LMLgrad()['X']).max() +
-             SP.absolute(self.gp.LMLgrad()['covar']).max() +
-             SP.absolute(self.gp.LMLgrad()['lik']).max())
+        m = (NP.absolute(self.gp.LMLgrad()['X']).max() +
+             NP.absolute(self.gp.LMLgrad()['covar']).max() +
+             NP.absolute(self.gp.LMLgrad()['lik']).max())
 
         np.testing.assert_almost_equal(m, 0., decimal=1)
 
@@ -97,20 +96,20 @@ class CGPLVM_test_constK(unittest.TestCase):
         K = self.settings['K']
         D = self.settings['D']
 
-        SP.random.seed(1)
-        S = SP.random.randn(N,K)
-        W = SP.random.randn(D,K)
+        np.random.seed(1)
+        S = np.random.randn(N,K)
+        W = np.random.randn(D,K)
 
-        Y = SP.dot(W,S.T).T
-        Y+= 0.1*SP.random.randn(N,D)
+        Y = NP.dot(W,S.T).T
+        Y+= 0.1*np.random.randn(N,D)
 
-        X0 = SP.random.randn(N,K)
+        X0 = np.random.randn(N,K)
         X0 = PCA(Y,K)[0]
         RV = {'X0': X0,'Y':Y,'S':S,'W':W}
         return RV
 
     def setUp(self):
-        SP.random.seed(1)
+        np.random.seed(1)
 
         #1. simulate
         self.settings = {'K':5,'N':100,'D':80}
@@ -121,7 +120,7 @@ class CGPLVM_test_constK(unittest.TestCase):
         D = self.settings['D']
 
         #2. setup GP
-        K0 = SP.dot(self.simulation['S'],self.simulation['S'].T)
+        K0 = NP.dot(self.simulation['S'],self.simulation['S'].T)
         K0[:] = 0
 
         covar1 = dlimix_legacy.CFixedCF(K0)
@@ -132,8 +131,8 @@ class CGPLVM_test_constK(unittest.TestCase):
 
         ll  = dlimix_legacy.CLikNormalIso()
         #create hyperparm
-        covar_params = SP.array([0.0,1.0])
-        lik_params = SP.array([0.1])
+        covar_params = NP.array([0.0,1.0])
+        lik_params = NP.array([0.1])
         hyperparams = dlimix_legacy.CGPHyperParams()
         hyperparams['covar'] = covar_params
         hyperparams['lik'] = lik_params
@@ -154,9 +153,9 @@ class CGPLVM_test_constK(unittest.TestCase):
         RV = self.gpopt.opt()
         RV = self.gpopt.opt()
 
-        m = (SP.absolute(self.gp.LMLgrad()['X']).max() +
-             SP.absolute(self.gp.LMLgrad()['covar']).max() +
-             SP.absolute(self.gp.LMLgrad()['lik']).max())
+        m = (NP.absolute(self.gp.LMLgrad()['X']).max() +
+             NP.absolute(self.gp.LMLgrad()['covar']).max() +
+             NP.absolute(self.gp.LMLgrad()['lik']).max())
 
         np.testing.assert_almost_equal(m, 0., decimal=1)
 

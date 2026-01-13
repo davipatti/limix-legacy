@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import scipy as sp
+import numpy as np
 
 # A simple function to calculat the minor allele frequency
 # Here, we assume that M is either [0,1] or [0,1,2]
@@ -24,11 +24,11 @@ def calc_AF(M,major=0,minor=2):
         Nhet   = (M==0).sum(axis=0)
         Nmajor = 2*(M==0).sum(axis=0)
         Nminor = 2*(M==2).sum(axis=0)
-        af  = Nminor/sp.double(2*M.shape[0])
+        af  = Nminor/np.float64(2*M.shape[0])
     else:
         Nmajor = (M==0).sum(axis=0)
         Nminor = (M==1).sum(axis=0)
-        af  = Nminor/sp.double(1*M.shape[0])
+        af  = Nminor/np.float64(1*M.shape[0])
     RV = {}
     RV['af'] = af
     RV['Nmajor'] = Nmajor
@@ -47,15 +47,15 @@ def calc_LD(M,pos,i_start=[0],max_dist=1000000):
     for start in i_start:
         pos0 = pos[start]
         v0  = M[:,start]
-        Iselect = sp.nonzero(sp.absolute(pos-pos0)<=max_dist)[0]
-        rv = sp.zeros(len(Iselect))
+        Iselect = np.nonzero(np.absolute(pos-pos0)<=max_dist)[0]
+        rv = np.zeros(len(Iselect))
         for i in range(len(Iselect)):
-            rv[i] = (sp.corrcoef(v0,M[:,Iselect[i]])[0,1])**2
+            rv[i] = (np.corrcoef(v0,M[:,Iselect[i]])[0,1])**2
         #sort by distance
-        dist = sp.absolute(pos[Iselect]-pos0)
+        dist = np.absolute(pos[Iselect]-pos0)
         RV.extend(rv)
         DIST.extend(dist)
-    RV = sp.array(RV)
-    DIST = sp.array(DIST)
+    RV = np.array(RV)
+    DIST = np.array(DIST)
     II = DIST.argsort()
     return [DIST[II],RV[II]]
