@@ -8,28 +8,7 @@
 
 
 
-from sys import version_info
-if version_info >= (2, 6, 0):
-    def swig_import_helper():
-        from os.path import dirname
-        import imp
-        fp = None
-        try:
-            fp, pathname, description = imp.find_module('_core', [dirname(__file__)])
-        except ImportError:
-            from . import _core
-            return _core
-        if fp is not None:
-            try:
-                _mod = imp.load_module('_core', fp, pathname, description)
-            finally:
-                fp.close()
-            return _mod
-    _core = swig_import_helper()
-    del swig_import_helper
-else:
-    from . import _core
-del version_info
+from . import _core
 try:
     _swig_property = property
 except NameError:

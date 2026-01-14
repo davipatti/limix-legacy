@@ -1,11 +1,11 @@
-from pkg_resources import DistributionNotFound as _DistributionNotFound
-from pkg_resources import get_distribution as _get_distribution
+from importlib.metadata import PackageNotFoundError as _PackageNotFoundError
+from importlib.metadata import version as _version
 
 from . import io
 
 try:
-    __version__ = _get_distribution('limix-legacy').version
-except _DistributionNotFound:
+    __version__ = _version('limix-legacy')
+except _PackageNotFoundError:
     __version__ = 'unknown'
 
 
