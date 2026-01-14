@@ -32,7 +32,7 @@ class CLMM_test_large(unittest.TestCase):
             pv = lmm.getPv().ravel()
             BetaSte = lmm.getBetaSNPste().ravel()
             Beta = lmm.getBetaSNP()
-            D2pv= (NP.log10(pv)-NP.log10(NP.tile(D['pv'],self.NL))**2)
+            D2pv= (NP.log10(pv)-NP.log10(NP.tile(D['pv'],self.NL)))**2
             # D2Beta= (Beta-NP.tile(D['Beta'],self.NL))**2
             # D2BetaSte = (BetaSte-NP.tile(D['BetaSte'],self.NL))**2
             RV = NP.sqrt(D2pv.mean())<1E-6

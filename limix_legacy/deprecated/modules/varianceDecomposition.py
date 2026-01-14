@@ -454,7 +454,7 @@ class VarianceDecomposition:
     def getScales(self,term_i=None):
         """
         Returns Cholesky parameters
-        To retrieve proper variances and covariances \see getVarComps and \see getTraitCovar
+        To retrieve proper variances and covariances see getVarComps and see getTraitCovar
 
         Args:
             term_i:     index of the term of which we want to retrieve the variance paramenters
@@ -481,7 +481,7 @@ class VarianceDecomposition:
     def getTraitCovar(self,term_i=None):
         """
         Return the estimated trait covariance matrix for term_i (or the total if term_i is None)
-            To retrieve the matrix of correlation coefficient use \see getTraitCorrCoef
+            To retrieve the matrix of correlation coefficient use see getTraitCorrCoef
 
         Args:
             term_i:     index of the random effect term we want to retrieve the covariance matrix
@@ -502,7 +502,7 @@ class VarianceDecomposition:
     def getTraitCorrCoef(self,term_i=None):
         """
         Return the estimated trait correlation coefficient matrix for term_i (or the total if term_i is None)
-            To retrieve the trait covariance matrix use \see getTraitCovar
+            To retrieve the trait covariance matrix use see getTraitCovar
 
         Args:
             term_i:     index of the random effect term we want to retrieve the correlation coefficients
@@ -539,7 +539,7 @@ class VarianceDecomposition:
 
     def getTraitCovarStdErrors(self,term_i):
         """
-        Returns standard errors on trait covariances from term_i (for the covariance estimate \see getTraitCovar)
+        Returns standard errors on trait covariances from term_i (for the covariance estimate see getTraitCovar)
 
         Args:
             term_i:     index of the term we are interested in
@@ -566,7 +566,7 @@ class VarianceDecomposition:
 
     def getVarianceCompStdErrors(self,univariance=False):
         """
-        Return the standard errors on the estimated variance components (for variance component estimates \see getVarianceComps)
+        Return the standard errors on the estimated variance components (for variance component estimates see getVarianceComps)
 
         Args:
             univariance:   Boolean indicator, if True variance components are normalized to sum up to 1 for each trait

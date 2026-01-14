@@ -260,7 +260,7 @@ class Forest(object):
             n_sample = NP.int_(self.n*self.sampsize)
             subsample = NP.random.permutation(self.n)[:n_sample]
         else:
-            subsample = NP.random.random_integers(0, self.n-1, self.n)
+            subsample = NP.random.randint(0, self.n, self.n)
         return subsample
 
     def further(self, depth=float('inf')):
