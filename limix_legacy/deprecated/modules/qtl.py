@@ -759,7 +759,6 @@ def _estimateKronCovariances(phenos,K1r=None,K1c=None,K2r=None,K2c=None,covs=Non
 	Returns:
 		VarianceDecomposition object
 	"""
-	print(".. Training the backgrond covariance with a GP model")
 	vc = VAR.VarianceDecomposition(phenos)
 	if K1r is not None:
 		vc.addRandomEffect(K1r,trait_covar_type=trait_covar_type,rank=rank)
@@ -768,7 +767,6 @@ def _estimateKronCovariances(phenos,K1r=None,K1c=None,K2r=None,K2c=None,covs=Non
 		vc.addRandomEffect(is_noise=True,K=K2r,trait_covar_type=trait_covar_type,rank=rank)
 	for ic  in range(len(Acovs)):
 		vc.addFixedEffect(covs[ic],Acovs[ic])
-	start = time.time()
 	if old_opt:
 		conv = vc.optimize(fast=True)
 	elif lambd is not None:
@@ -776,8 +774,6 @@ def _estimateKronCovariances(phenos,K1r=None,K1c=None,K2r=None,K2c=None,covs=Non
 	else:
 		conv = vc.optimize(init_method=init_method,verbose=verbose)
 	assert conv, "Variance Decomposition has not converged"
-	time_el = time.time()-start
-	print(("Background model trained in %.2f s" % time_el))
 	return vc
 
 def _updateKronCovs(covs,Acovs,N,P):
