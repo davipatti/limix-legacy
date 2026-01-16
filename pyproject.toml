@@ -9,10 +9,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "limix-legacy"
-version = "0.8.13"
+version = "0.8.14"
 description = "A flexible and fast mixed model toolbox."
 readme = "README.md"
-license = {text = "Apache License 2.0"}
+license = "Apache-2.0"
 authors = [
     {name = "Danilo Horta"},
     {name = "Christoph Lippert"},
@@ -27,7 +27,6 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
@@ -55,6 +54,8 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["limix_legacy"]
 include-package-data = true
 zip-safe = false
+
+[tool.setuptools.packages.find]
+include = ["limix_legacy*"]
