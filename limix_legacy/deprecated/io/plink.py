@@ -14,7 +14,7 @@
 
 import pdb
 import os
-import numpy as SP
+import numpy as NP
 import csv
 
 def deduce_delimiter(filename):

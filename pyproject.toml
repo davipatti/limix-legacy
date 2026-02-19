@@ -59,7 +59,7 @@ zip-safe = false
 include = ["limix_legacy*"]
 
 [tool.pytest.ini_options]
-addopts = "--doctest-modules --ignore=limix_legacy/modules/dirIndirVD_commented_forDistrib.py --ignore=limix_legacy/modules/social_data_HSmice_paper.py --ignore=limix_legacy/deprecated/io/genotype_reader.py --ignore=limix_legacy/deprecated/io/output_writer.py --ignore=limix_legacy/deprecated/io/phenotype_reader.py --ignore=limix_legacy/io/genotype_reader.py --ignore=limix_legacy/io/output_writer.py --ignore=limix_legacy/io/phenotype_reader.py"
+addopts = "--doctest-modules --ignore=limix_legacy/modules/dirIndirVD_commented_forDistrib.py --ignore=limix_legacy/deprecated/modules/dirIndirVD_commented_forDistrib.py --ignore=limix_legacy/modules/social_data_HSmice_paper.py --ignore=limix_legacy/deprecated/io/genotype_reader.py --ignore=limix_legacy/deprecated/io/output_writer.py --ignore=limix_legacy/deprecated/io/phenotype_reader.py --ignore=limix_legacy/io/genotype_reader.py --ignore=limix_legacy/io/output_writer.py --ignore=limix_legacy/io/phenotype_reader.py"
 python_files = "limix_legacy/*/*.py"
 norecursedirs = "build cython demos deploy derivations External src travis .eggs"
 python_functions = "test_*"
