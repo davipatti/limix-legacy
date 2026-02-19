@@ -12243,6 +12243,18 @@ class CKroneckerLMM(ALMM):
         return _core.CKroneckerLMM_getBetaSNP(self)
 
 
+    def getBetaSNPste(self):
+        """
+        getBetaSNPste(CKroneckerLMM self)
+
+        Parameters
+        ----------
+        self: limix::CKroneckerLMM *
+
+        """
+        return _core.CKroneckerLMM_getBetaSNPste(self)
+
+
     def addCovariates(self, covR, covCol):
         """
         addCovariates(CKroneckerLMM self, MatrixXd const & covR, MatrixXd const & covCol)

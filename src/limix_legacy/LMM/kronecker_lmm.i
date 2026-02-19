@@ -27,6 +27,7 @@ namespace limix_legacy {
 %rename(getLdeltaAlt) CKroneckerLMM::agetLdeltaAlt;
 %rename(getLdelta0) CKroneckerLMM::agetLdelta0;
 %rename(getBetaSNP) CKroneckerLMM::agetBetaSNP;
+%rename(getBetaSNPste) CKroneckerLMM::agetBetaSNPste;
 }
 
 

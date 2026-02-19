@@ -147,6 +147,120 @@ class CKroneckerLMM_test(unittest.TestCase):
 
 
 
+    def test_beta_ste(self):
+        """test Kronecker LMM standard errors via Wald-LRT consistency in the univariate case.
+
+        Validates SE by checking that Wald p-values (beta^2/SE^2) closely match
+        LRT p-values. Also verifies betas match the standard CLMM.
+        """
+        import scipy.stats as st
+        for dn in self.datasets:
+            D = data.load(os.path.join(self.dir_name,dn))
+            K1r = D['K']
+            K1c = NP.eye(1)
+            K2r = NP.eye(D['K'].shape[0])
+            K2c = NP.eye(1)
+            A   = NP.eye(1)
+            Acov = NP.eye(1)
+            Xcov  = D['Cov'][:,NP.newaxis]
+            X      = D['X']
+            Y      = D['Y'][:,NP.newaxis]
+
+            #1. Kronecker LMM
+            klmm = dlimix_legacy.CKroneckerLMM()
+            klmm.setK1r(K1r)
+            klmm.setK1c(K1c)
+            klmm.setK2r(K2r)
+            klmm.setK2c(K2c)
+            klmm.setSNPs(X)
+            klmm.addCovariates(Xcov,Acov)
+            klmm.setSNPcoldesign(A)
+            klmm.setPheno(Y)
+            klmm.setNumIntervalsAlt(0)
+            klmm.setNumIntervals0(100)
+            klmm.process()
+            beta_kron = klmm.getBetaSNP().ravel()
+            ste_kron  = klmm.getBetaSNPste().ravel()
+            pv_lrt    = klmm.getPv().ravel()
+
+            #2. Standard CLMM (for beta comparison only)
+            slmm = dlimix_legacy.CLMM()
+            slmm.setK(D['K'])
+            slmm.setSNPs(X)
+            slmm.setCovs(D['Cov'])
+            slmm.setPheno(D['Y'])
+            slmm.setNumIntervals0(100)
+            slmm.setNumIntervalsAlt(0)
+            slmm.process()
+            beta_std = slmm.getBetaSNP().ravel()
+
+            #3. Compare betas (should match exactly)
+            D2_beta = ((beta_kron - beta_std)**2)
+            RV_beta = NP.sqrt(D2_beta.mean())
+            self.assertTrue(RV_beta < 1E-6, "beta mismatch: RMSE=%.2e" % RV_beta)
+
+            #4. Sanity: SE should be positive and finite
+            self.assertTrue(NP.all(ste_kron > 0), "SE should be positive")
+            self.assertTrue(NP.all(NP.isfinite(ste_kron)), "SE should be finite")
+
+            #5. Wald p-values from SE should match LRT p-values closely
+            wald = (beta_kron / ste_kron)**2
+            pv_wald = st.chi2.sf(wald, 1)
+            # Correlation in -log10 space
+            log_lrt = -NP.log10(NP.clip(pv_lrt, 1e-300, 1))
+            log_wald = -NP.log10(NP.clip(pv_wald, 1e-300, 1))
+            corr = NP.corrcoef(log_lrt, log_wald)[0,1]
+            self.assertTrue(corr > 0.999, "Wald-LRT correlation too low: r=%.6f" % corr)
+
+    def test_beta_ste_multitrait(self):
+        """test SE in the multi-trait case: SE > 0, finite, and Wald test ~ LRT p-values"""
+        for dn in self.datasets:
+            D = data.load(os.path.join(self.dir_name,dn))
+            N = D['K'].shape[0]
+            P = 2
+            K1r = D['K']
+            K1c = NP.eye(P)
+            K2r = NP.eye(N)
+            K2c = NP.eye(P)
+            # Use common-effect design (1 DOF)
+            A = NP.ones([1,P])
+            Acov = NP.eye(P)
+            Xcov = D['Cov'][:,NP.newaxis]
+            X = D['X']
+            Y = NP.column_stack([D['Y'], D['Y'] + NP.random.RandomState(0).randn(N)*0.1])
+
+            klmm = dlimix_legacy.CKroneckerLMM()
+            klmm.setK1r(K1r)
+            klmm.setK1c(K1c)
+            klmm.setK2r(K2r)
+            klmm.setK2c(K2c)
+            klmm.setSNPs(X)
+            klmm.addCovariates(Xcov,Acov)
+            klmm.setSNPcoldesign(A)
+            klmm.setPheno(Y)
+            klmm.setNumIntervalsAlt(0)
+            klmm.setNumIntervals0(100)
+            klmm.process()
+
+            beta = klmm.getBetaSNP().ravel()
+            ste  = klmm.getBetaSNPste().ravel()
+
+            # Sanity checks
+            self.assertTrue(NP.all(ste > 0), "SE should be positive")
+            self.assertTrue(NP.all(NP.isfinite(ste)), "SE should be finite")
+
+            # Wald statistic should be roughly consistent with LRT
+            import scipy.stats as st
+            pv_lrt = klmm.getPv().ravel()
+            wald = (beta / ste)**2
+            pv_wald = st.chi2.sf(wald, 1)
+            # Correlation in -log10 space should be high
+            log_lrt = -NP.log10(NP.clip(pv_lrt, 1e-300, 1))
+            log_wald = -NP.log10(NP.clip(pv_wald, 1e-300, 1))
+            corr = NP.corrcoef(log_lrt, log_wald)[0,1]
+            self.assertTrue(corr > 0.9, "Wald and LRT p-values should be correlated (r=%.3f)" % corr)
+
+
 class CInteractLMM_test:
     """Interaction test"""
     def __init__(self):

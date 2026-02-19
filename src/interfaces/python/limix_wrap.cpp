@@ -85222,6 +85222,75 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_CKroneckerLMM_getBetaSNPste(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  limix_legacy::CKroneckerLMM *arg1 = (limix_legacy::CKroneckerLMM *) 0 ;
+  MatrixXd *arg2 = (MatrixXd *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  std::shared_ptr< limix_legacy::CKroneckerLMM > tempshared1 ;
+  std::shared_ptr< limix_legacy::CKroneckerLMM > *smartarg1 = 0 ;
+  MatrixXd temp2 ;
+  PyObject * obj0 = 0 ;
+
+  {
+    arg2 = &temp2;
+
+  }
+  if (!PyArg_ParseTuple(args,(char *)"O:CKroneckerLMM_getBetaSNPste",&obj0)) SWIG_fail;
+  {
+    int newmem = 0;
+    res1 = SWIG_ConvertPtrAndOwn(obj0, &argp1, SWIGTYPE_p_std__shared_ptrT_limix_legacy__CKroneckerLMM_t, 0 |  0 , &newmem);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "CKroneckerLMM_getBetaSNPste" "', argument " "1"" of type '" "limix_legacy::CKroneckerLMM *""'");
+    }
+    if (newmem & SWIG_CAST_NEW_MEMORY) {
+      tempshared1 = *reinterpret_cast< std::shared_ptr<  limix_legacy::CKroneckerLMM > * >(argp1);
+      delete reinterpret_cast< std::shared_ptr<  limix_legacy::CKroneckerLMM > * >(argp1);
+      arg1 = const_cast< limix_legacy::CKroneckerLMM * >(tempshared1.get());
+    } else {
+      smartarg1 = reinterpret_cast< std::shared_ptr<  limix_legacy::CKroneckerLMM > * >(argp1);
+      arg1 = const_cast< limix_legacy::CKroneckerLMM * >((smartarg1 ? smartarg1->get() : 0));
+    }
+  }
+  {
+    try {
+      (arg1)->agetBetaSNPste(arg2);
+    } catch (limix_legacy::CLimixException& e) {
+      std::string s("LIMIX error: "), s2(e.what());
+      s = s + s2;
+      SWIG_exception(SWIG_RuntimeError, s.c_str());
+      return NULL;
+    } catch (...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception");
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    // prepare resulting array
+    npy_intp dims[] = {
+      arg2->rows(), arg2->cols()
+    };
+    PyObject * out_array = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+
+    if (out_array == NULL){
+      PyErr_SetString(PyExc_ValueError,
+        "Unable to create the output array.");
+
+      return NULL;
+    }
+
+    mfloat_t* out_data = (mfloat_t*)array_data(out_array);
+    Eigen::Map<MatrixXdscipy>(out_data, dims[0], dims[1]) = (*arg2);
+
+    resultobj = SWIG_Python_AppendOutput(resultobj, out_array);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_CKroneckerLMM_setCovariates__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   limix_legacy::CKroneckerLMM *arg1 = (limix_legacy::CKroneckerLMM *) 0 ;
@@ -105523,6 +105592,14 @@ static PyMethodDef SwigMethods[] = {
 		""},
 	 { (char *)"CKroneckerLMM_getBetaSNP", _wrap_CKroneckerLMM_getBetaSNP, METH_VARARGS, (char *)"\n"
 		"CKroneckerLMM_getBetaSNP(CKroneckerLMM self)\n"
+		"\n"
+		"Parameters\n"
+		"----------\n"
+		"self: limix_legacy::CKroneckerLMM *\n"
+		"\n"
+		""},
+	 { (char *)"CKroneckerLMM_getBetaSNPste", _wrap_CKroneckerLMM_getBetaSNPste, METH_VARARGS, (char *)"\n"
+		"CKroneckerLMM_getBetaSNPste(CKroneckerLMM self)\n"
 		"\n"
 		"Parameters\n"
 		"----------\n"

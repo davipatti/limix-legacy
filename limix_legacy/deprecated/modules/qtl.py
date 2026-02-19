@@ -312,12 +312,17 @@ def qtl_test_lmm_kronecker(snps,phenos,covs=None,Acovs=None,Asnps=None,K1r=None,
         lmm.setNumIntervalsAlt(0)
     lmm.setNumIntervals0(NumIntervalsDelta0)
 
+    #one row per column design matrix (standard errors)
+    beta_snp = np.zeros((len(Asnps),snps.shape[1]))
+    beta_snp_ste = np.zeros((len(Asnps),snps.shape[1]))
     for iA in range(len(Asnps)):
         #add SNP design
         lmm.setSNPcoldesign(Asnps[iA])
         lmm.process()
         pv[iA,:] = lmm.getPv()[0]
-    return lmm,pv
+        beta_snp[iA,:] = lmm.getBetaSNP()[0]
+        beta_snp_ste[iA,:] = lmm.getBetaSNPste()[0]
+    return lmm,pv,beta_snp,beta_snp_ste
 
 def qtl_test_interaction_lmm_kronecker(snps,phenos,covs=None,Acovs=None,Asnps1=None,Asnps0=None,K1r=None,K1c=None,K2r=None,K2c=None,trait_covar_type='lowrank_diag',rank=1,NumIntervalsDelta0=100,NumIntervalsDeltaAlt=100,searchDelta=False,return_lmm=False):
     """
@@ -656,7 +661,7 @@ def forward_lmm_kronecker(snps,phenos,Asnps=None,Acond=None,K1r=None,K1c=None,K2
         assert K2c.shape[0]==P, 'K2c: dimensions dismatch'
         assert K2c.shape[1]==P, 'K2c: dimensions dismatch'
     t0 = time.time()
-    lm,pv = qtl_test_lmm_kronecker(snps=snps,phenos=phenos,Asnps=Asnps,K1r=K1r,K2r=K2r,K1c=K1c,K2c=K2c,covs=covs,Acovs=Acovs)
+    lm,pv,_,_ = qtl_test_lmm_kronecker(snps=snps,phenos=phenos,Asnps=Asnps,K1r=K1r,K2r=K2r,K1c=K1c,K2c=K2c,covs=covs,Acovs=Acovs)
 
     #get pv
     #start stuff

@@ -78,9 +78,11 @@ protected:
 	MatrixXd ldelta0;
 	MatrixXd ldelta0_inter;
 	MatrixXd ldeltaAlt;
-    //Weights  
+    //Weights
     MatrixXd W;
+    MatrixXd W_ste;
     MatrixXd beta_snp;
+    MatrixXd beta_snp_ste;
 public:
 	CKroneckerLMM();
 	virtual ~CKroneckerLMM();
@@ -148,6 +150,10 @@ public:
 	{
 		(*out) = beta_snp;
 	}
+	void agetBetaSNPste(MatrixXd *out)
+	{
+		(*out) = beta_snp_ste;
+	}
 
 
 	/*! set Vecotr of covariates
@@ -174,7 +180,7 @@ public:
 	void setCovariates(muint_t index,const MatrixXd& covR, const MatrixXd& covC);
 
 
-	static mfloat_t nLLeval(mfloat_t ldelta, const MatrixXdVec& A,const MatrixXdVec& X, const MatrixXd& Y, const VectorXd& S_C1, const VectorXd& S_R1, const VectorXd& S_C2, const VectorXd& S_R2, MatrixXd& W);
+	static mfloat_t nLLeval(mfloat_t ldelta, const MatrixXdVec& A,const MatrixXdVec& X, const MatrixXd& Y, const VectorXd& S_C1, const VectorXd& S_R1, const VectorXd& S_C2, const VectorXd& S_R2, MatrixXd& W, MatrixXd* W_ste = NULL);
 	static mfloat_t optdelta(mfloat_t& ldelta_opt, const MatrixXdVec& A,const MatrixXdVec& X, const MatrixXd& Y, const VectorXd& S_C1, const VectorXd& S_R1, const VectorXd& S_C2, const VectorXd& S_R2, mfloat_t ldeltamin, mfloat_t ldeltamax, muint_t numintervals);
 	//set precompute decompositions
 	//void setMatrices(const MatrixXd)

@@ -54,6 +54,7 @@ void CKroneckerLMM::process() {
 	this->ldelta0.resize(1,num_snps);
 	this->ldeltaAlt.resize(1,num_snps);
     this->beta_snp.resize(snpcoldesign.rows(),num_snps);
+    this->beta_snp_ste.resize(snpcoldesign.rows(),num_snps);
 	if (this->snpcoldesign0_inter.rows()!=0) //check if interaction design matrix is set
 	{
 		this->nLL0_inter.resize(1,num_snps);
@@ -126,13 +127,16 @@ void CKroneckerLMM::process() {
 		if (num_intervalsAlt>0)
 		{
 			nLL = CKroneckerLMM::optdelta(ldelta,coldesignUAlt,UrowdesignAlt,this->Upheno,this->S1c,this->S1r,this->S2c,this->S2r, ldeltaminAlt, ldeltamaxAlt, num_intervalsAlt);
+			//re-evaluate at optimal delta to get W and W_ste
+			CKroneckerLMM::nLLeval(ldelta,coldesignUAlt,UrowdesignAlt,this->Upheno,this->S1c,this->S1r,this->S2c,this->S2r, this->W, &this->W_ste);
 		}
 		else
 		{
-			nLL = CKroneckerLMM::nLLeval(ldelta,coldesignUAlt,UrowdesignAlt,this->Upheno,this->S1c,this->S1r,this->S2c,this->S2r, this->W);
+			nLL = CKroneckerLMM::nLLeval(ldelta,coldesignUAlt,UrowdesignAlt,this->Upheno,this->S1c,this->S1r,this->S2c,this->S2r, this->W, &this->W_ste);
 		}
 		nLLAlt(0,is) = nLL;
         beta_snp.block(0,is,snpcoldesignU.rows(),1) = W;
+        beta_snp_ste.block(0,is,snpcoldesignU.rows(),1) = W_ste;
 		ldeltaAlt(0,is) = ldelta;
 		deltaNLL = nLL0(0,is) - nLLAlt(0,is);
 		//std::cout<< "nLL0(0,is)"<< nLL0(0,is)<< "nLLAlt(0,is)" << nLLAlt(0,is)<< "\n";
@@ -215,7 +219,7 @@ mfloat_t CKroneckerLMM::optdelta(mfloat_t& ldelta_opt, const MatrixXdVec& A,cons
     return nllmin;
 }
 
-mfloat_t CKroneckerLMM::nLLeval(mfloat_t ldelta, const MatrixXdVec& A,const MatrixXdVec& X, const MatrixXd& Y, const VectorXd& S_C1, const VectorXd& S_R1, const VectorXd& S_C2, const VectorXd& S_R2, MatrixXd& W)
+mfloat_t CKroneckerLMM::nLLeval(mfloat_t ldelta, const MatrixXdVec& A,const MatrixXdVec& X, const MatrixXd& Y, const VectorXd& S_C1, const VectorXd& S_R1, const VectorXd& S_C2, const VectorXd& S_R2, MatrixXd& W, MatrixXd* W_ste)
 {
 //#define debugll
 	muint_t R = (muint_t)Y.rows();
@@ -356,24 +360,19 @@ mfloat_t CKroneckerLMM::nLLeval(mfloat_t ldelta, const MatrixXdVec& A,const Matr
 	mfloat_t sigma = res/(mfloat_t)(R*C);
 
 	mfloat_t nLL = 0.5 * ( R * C * (L2pi + log(sigma) + 1.0) + ldet);
-#ifdef returnW
-	covW = covW.inverse();	//here is another inverse!
-	//std::cout << "covW.inverse() = " << covW<<std::endl;
-
-	muint_t cumSum = 0;
-	VectorXd F_vec = W_vec.array() * W_vec.array() /covW.diagonal().array() / sigma;//how to compute the inverse diagonal more efficiently?
-	for(muint_t term = 0; term < A.size();++term)
+	//compute standard errors for the SNP term (last term) if requested
+	if (W_ste != NULL)
 	{
-		muint_t currSize = X[term].cols() * A[term].rows();
-		//W[term] = MatrixXd(X[term].cols(),A[term].rows());
-		W[term] = W_vec.block(cumSum,0,currSize,1);//
-		W[term].resize(X[term].cols(),A[term].rows());
-		//F_tests[term] = MatrixXd(X[term].cols(),A[term].rows());
-		F_tests[term] = F_vec.block(cumSum,0,currSize,1);//
-		F_tests[term].resize(X[term].cols(),A[term].rows());
-		cumSum+=currSize;
+		//SE(w) = sqrt(sigma * diag((X'DX)^{-1})) for the SNP block
+		MatrixXd covWinv = covW.inverse();
+		muint_t snpWeightSize = A.back().rows() * X.back().cols();
+		muint_t snpWeightStart = nWeights - snpWeightSize;
+		W_ste->resize(snpWeightSize, 1);
+		for (muint_t i = 0; i < snpWeightSize; ++i)
+		{
+			(*W_ste)(i, 0) = sqrt(sigma * covWinv(snpWeightStart + i, snpWeightStart + i));
+		}
 	}
-#endif
 	return nLL;
 }
 
