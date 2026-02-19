@@ -533,19 +533,13 @@ inline void CLMMCore::nLLevalEx(const Eigen::MatrixBase<Derived1>& AObeta_, cons
 		AOsigma = res.colwise().sum() / (mfloat_t)n;
 	}
 
-	//compute standard errors
+	//compute standard errors: SE(beta) = sqrt(sigma * diag((X'S^{-1}X)^{-1}))
+	//AOF_tests already contains diag((X'S^{-1}X)^{-1})
 	if(calc_ste)
 	{
-		AObeta_ste  = AOF_tests.cwiseInverse();
+		AObeta_ste = AOF_tests;
 		AObeta_ste.array().rowwise() *= AOsigma.array().row(0);
-		//Christoph: I think this is a bug:
-		//ste should not be divided by additional n, That factor is already considered in sigma
-		//if (REML){
-		//	AObeta_ste/=n-d;
-		//}else{
-		//	AObeta_ste/=n;
-		//}
-		AObeta_ste =AObeta_ste.cwiseSqrt();
+		AObeta_ste = AObeta_ste.cwiseSqrt();
 	}
 	//compute the F-statistics
 	if(calc_ftest)
