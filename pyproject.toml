@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "limix-legacy"
-version = "0.8.14"
+version = "0.8.15"
 description = "A flexible and fast mixed model toolbox."
 readme = "README.md"
 license = "Apache-2.0"
