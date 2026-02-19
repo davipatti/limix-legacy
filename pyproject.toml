@@ -48,11 +48,8 @@ dependencies = [
 Homepage = "https://github.com/limix/limix-legacy"
 Repository = "https://github.com/limix/limix-legacy"
 
-[project.optional-dependencies]
-dev = [
-    "pytest",
-    "pytest-runner",
-]
+[dependency-groups]
+dev = ["pytest"]
 
 [tool.setuptools]
 include-package-data = true
@@ -60,3 +57,9 @@ zip-safe = false
 
 [tool.setuptools.packages.find]
 include = ["limix_legacy*"]
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules --ignore=limix_legacy/modules/dirIndirVD_commented_forDistrib.py --ignore=limix_legacy/modules/social_data_HSmice_paper.py --ignore=limix_legacy/deprecated/io/genotype_reader.py --ignore=limix_legacy/deprecated/io/output_writer.py --ignore=limix_legacy/deprecated/io/phenotype_reader.py --ignore=limix_legacy/io/genotype_reader.py --ignore=limix_legacy/io/output_writer.py --ignore=limix_legacy/io/phenotype_reader.py"
+python_files = "limix_legacy/*/*.py"
+norecursedirs = "build cython demos deploy derivations External src travis .eggs"
+python_functions = "test_*"
