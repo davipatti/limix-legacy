@@ -261,6 +261,183 @@ class CKroneckerLMM_test(unittest.TestCase):
             self.assertTrue(corr > 0.9, "Wald and LRT p-values should be correlated (r=%.3f)" % corr)
 
 
+class CKroneckerLMM_synth_test(unittest.TestCase):
+    """Tests of CKroneckerLMM using synthetic data (no reference files)."""
+
+    def _make_data(self, N=80, S=20, P=2, seed=42):
+        rng = NP.random.RandomState(seed)
+        X = rng.randn(N, S)
+        K = X @ X.T / S + NP.eye(N)
+        Y = rng.randn(N, P)
+        return X, Y, K
+
+    def test_multitrait_pv_nonnegative(self):
+        """CKroneckerLMM with multiple traits returns valid p-values."""
+        X, Y, K = self._make_data()
+        N, P = Y.shape
+
+        klmm = dlimix_legacy.CKroneckerLMM()
+        klmm.setK1r(K)
+        klmm.setK1c(NP.eye(P))
+        klmm.setK2r(NP.eye(N))
+        klmm.setK2c(NP.eye(P))
+        klmm.setSNPs(X)
+        klmm.addCovariates(NP.ones((N, 1)), NP.eye(P))
+        klmm.setSNPcoldesign(NP.ones((1, P)))
+        klmm.setPheno(Y)
+        klmm.setNumIntervals0(100)
+        klmm.setNumIntervalsAlt(0)
+        klmm.process()
+
+        pv = klmm.getPv()
+        beta = klmm.getBetaSNP()
+        ste = klmm.getBetaSNPste()
+
+        self.assertTrue(NP.all(pv >= 0))
+        self.assertTrue(NP.all(pv <= 1))
+        self.assertTrue(NP.all(NP.isfinite(beta)))
+        self.assertTrue(NP.all(ste > 0))
+        self.assertTrue(NP.all(NP.isfinite(ste)))
+
+    def test_multiple_designs_different_dof(self):
+        """Different SNP designs produce p-values from different DOF tests."""
+        X, Y, K = self._make_data()
+        N, P = Y.shape
+
+        klmm = dlimix_legacy.CKroneckerLMM()
+        klmm.setK1r(K)
+        klmm.setK1c(NP.eye(P))
+        klmm.setK2r(NP.eye(N))
+        klmm.setK2c(NP.eye(P))
+        klmm.setSNPs(X)
+        klmm.addCovariates(NP.ones((N, 1)), NP.eye(P))
+        klmm.setPheno(Y)
+        klmm.setNumIntervals0(100)
+        klmm.setNumIntervalsAlt(0)
+
+        # Common effect (1 DOF)
+        klmm.setSNPcoldesign(NP.ones((1, P)))
+        klmm.process()
+        pv_common = klmm.getPv().copy()
+
+        # Independent effects (P DOF)
+        klmm.setSNPcoldesign(NP.eye(P))
+        klmm.process()
+        pv_indep = klmm.getPv().copy()
+
+        # Both should be valid
+        self.assertTrue(NP.all(NP.isfinite(pv_common)))
+        self.assertTrue(NP.all(NP.isfinite(pv_indep)))
+        # They should generally differ (different tests)
+        self.assertFalse(NP.allclose(pv_common, pv_indep))
+
+    def test_beta_ste_multitrait_wald_consistency(self):
+        """Multi-trait Wald p-values should be correlated with LRT p-values."""
+        import scipy.stats as st
+
+        rng = NP.random.RandomState(42)
+        N, S, P = 100, 30, 2
+        X = rng.randn(N, S)
+        K = X @ X.T / S + NP.eye(N)
+        # Create correlated phenotypes with a signal
+        beta = rng.randn(S) * 0.2
+        beta[0] = 1.0
+        Y = NP.column_stack([
+            X @ beta + rng.randn(N),
+            X @ beta * 0.5 + rng.randn(N)
+        ])
+
+        klmm = dlimix_legacy.CKroneckerLMM()
+        klmm.setK1r(K)
+        klmm.setK1c(NP.eye(P))
+        klmm.setK2r(NP.eye(N))
+        klmm.setK2c(NP.eye(P))
+        klmm.setSNPs(X)
+        klmm.addCovariates(NP.ones((N, 1)), NP.eye(P))
+        klmm.setSNPcoldesign(NP.ones((1, P)))  # common effect (1 DOF)
+        klmm.setPheno(Y)
+        klmm.setNumIntervals0(100)
+        klmm.setNumIntervalsAlt(0)
+        klmm.process()
+
+        beta_est = klmm.getBetaSNP().ravel()
+        ste = klmm.getBetaSNPste().ravel()
+        pv_lrt = klmm.getPv().ravel()
+
+        # Wald test with 1 DOF
+        wald = (beta_est / ste) ** 2
+        pv_wald = st.chi2.sf(wald, 1)
+
+        # -log10 correlation
+        log_lrt = -NP.log10(NP.clip(pv_lrt, 1e-300, 1))
+        log_wald = -NP.log10(NP.clip(pv_wald, 1e-300, 1))
+        corr = NP.corrcoef(log_lrt, log_wald)[0, 1]
+        self.assertGreater(corr, 0.9)
+
+    def test_nll_alt_leq_nll_null(self):
+        """Alternative model NLL should be <= null model NLL."""
+        X, Y, K = self._make_data(N=60, S=10)
+        N, P = Y.shape
+
+        klmm = dlimix_legacy.CKroneckerLMM()
+        klmm.setK1r(K)
+        klmm.setK1c(NP.eye(P))
+        klmm.setK2r(NP.eye(N))
+        klmm.setK2c(NP.eye(P))
+        klmm.setSNPs(X)
+        klmm.addCovariates(NP.ones((N, 1)), NP.eye(P))
+        klmm.setSNPcoldesign(NP.ones((1, P)))
+        klmm.setPheno(Y)
+        klmm.setNumIntervals0(100)
+        klmm.setNumIntervalsAlt(0)
+        klmm.process()
+
+        nll0 = klmm.getNLL0()
+        nll_alt = klmm.getNLLAlt()
+
+        # NLL_alt <= NLL_0 (alt model has more parameters)
+        self.assertTrue(NP.all(nll_alt <= nll0 + 1e-6),
+                       "NLL alt should be <= NLL null")
+
+    def test_univariate_equivalence_direct(self):
+        """CKroneckerLMM with P=1 gives same p-values as CLMM."""
+        dir_name = os.path.dirname(os.path.realpath(__file__))
+        D = data.load(os.path.join(dir_name, 'lmm_data1'))
+
+        # Standard CLMM
+        slmm = dlimix_legacy.CLMM()
+        slmm.setK(D['K'])
+        slmm.setSNPs(D['X'])
+        slmm.setCovs(D['Cov'])
+        slmm.setPheno(D['Y'])
+        slmm.setNumIntervals0(100)
+        slmm.setNumIntervalsAlt(0)
+        slmm.process()
+        pv_std = slmm.getPv().ravel()
+
+        # Kronecker equivalent
+        N = D['K'].shape[0]
+        klmm = dlimix_legacy.CKroneckerLMM()
+        klmm.setK1r(D['K'])
+        klmm.setK1c(NP.eye(1))
+        klmm.setK2r(NP.eye(N))
+        klmm.setK2c(NP.eye(1))
+        klmm.setSNPs(D['X'])
+        klmm.addCovariates(D['Cov'][:, NP.newaxis], NP.eye(1))
+        klmm.setSNPcoldesign(NP.eye(1))
+        klmm.setPheno(D['Y'][:, NP.newaxis])
+        klmm.setNumIntervals0(100)
+        klmm.setNumIntervalsAlt(0)
+        klmm.process()
+        pv_kron = klmm.getPv().ravel()
+
+        NP.testing.assert_allclose(
+            NP.log10(NP.clip(pv_std, 1e-300, 1)),
+            NP.log10(NP.clip(pv_kron, 1e-300, 1)),
+            atol=1e-5
+        )
+
+
 class CInteractLMM_test:
     """Interaction test"""
     def __init__(self):
