@@ -125,7 +125,7 @@ def ensemble_extension():
         depends=depends,
     )
 
-    return cythonize(ext)
+    return cythonize(ext, compiler_directives={"language_level": "3"})
 
 
 # Remove -Wstrict-prototypes from compiler flags (not valid for C++)

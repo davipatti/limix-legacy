@@ -2,14 +2,14 @@
 requires = [
     "setuptools>=45",
     "wheel",
-    "cython>=0.29,<3",
+    "cython>=3.0",
     "numpy>=1.19",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "limix-legacy"
-version = "0.8.15"
+version = "0.8.16"
 description = "A flexible and fast mixed model toolbox."
 readme = "README.md"
 license = "Apache-2.0"
